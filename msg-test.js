@@ -17,6 +17,7 @@ module.exports.Joi = Joi
 
 const optioner = Optioner({
   test: Joi.boolean().default(true),
+  log: Joi.boolean().default(false),
   data: Joi.object().unknown().default({}),
   context: Joi.object().unknown().default({}),
   fix: Joi.string().default(''),
@@ -37,7 +38,7 @@ function msg_test(seneca, spec) {
   return function(fin) {
     if(spec.test) {
       seneca
-        .test(fin)
+        .test(fin, spec.log ? 'print' : null)
     }
 
     // TODO: make optional
