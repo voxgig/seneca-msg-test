@@ -31,7 +31,7 @@ lab.test('happy', SenecaMsgTest(
     data: { foo: { bar: {
       b0: {entity$:'-/foo/bar', id:'b0', b:0},
       b1: {entity$:'-/foo/bar', id:'b1', b:1} }}},
-    fix: 'role:plugin0',
+    pattern: 'role:plugin0',
     calls: [
       {
         pattern: 'cmd:zed',
@@ -70,7 +70,7 @@ lab.test('data-sequence', SenecaMsgTest(
     print: false,
     test: false,
     data: {},
-    fix: 'role:foo',
+    pattern: 'role:foo',
     calls: [
       {
         name:'foo/a1',

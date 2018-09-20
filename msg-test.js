@@ -20,7 +20,8 @@ const optioner = Optioner({
   log: Joi.boolean().default(false),
   data: Joi.object().unknown().default({}),
   context: Joi.object().unknown().default({}),
-  fix: Joi.string().default(''),
+  fix: Joi.string().default(''), // DEPRECATED, use pattern instead
+  pattern: Joi.string().default(''),
   calls: Joi.array().items(Joi.object({
     name: Joi.string().min(1),
     print: Joi.boolean().default(false),
@@ -35,6 +36,9 @@ const optioner = Optioner({
 function msg_test(seneca, spec) {
   spec = optioner.check(spec)
 
+  // top level `pattern` replaces `fix`; `fix` deprecated as does not override
+  spec.pattern = '' === spec.pattern ? spec.fix : spec.pattern
+  
   return function(fin) {
     if(spec.test) {
       seneca
@@ -52,13 +56,13 @@ function msg_test(seneca, spec) {
           seneca = this
 
           const foundmsgs = seneca
-                .list(spec.fix)
+                .list(spec.pattern)
                 .map(msg=>seneca.util.pattern(msg))
 
           const specmsgs = {}
 
           spec.calls.forEach(call=>{
-            var specmsg = seneca.util.pattern(Jsonic(spec.fix+','+call.pattern))
+            var specmsg = seneca.util.pattern(Jsonic(spec.pattern+','+call.pattern))
             specmsgs[specmsg] = true
           })
 
@@ -109,8 +113,8 @@ function msg_test(seneca, spec) {
             var msg = Object.assign(
               {},
               params,
-              Jsonic(call.pattern),
-              Jsonic(spec.fix)
+              Jsonic(spec.pattern),
+              Jsonic(call.pattern)
             )
             var msgstr = Jsonic.stringify(msg)
             
@@ -161,7 +165,7 @@ function msg_test(seneca, spec) {
 
               if(call.name) {
                 callmap[call.name] = {
-                  fix: spec.fix,
+                  top_pattern: spec.pattern,
                   pattern: call.pattern,
                   params: params,
                   msg: msg,
