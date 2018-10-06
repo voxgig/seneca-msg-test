@@ -84,7 +84,7 @@ function msg_test(seneca, spec) {
 
 const intern = (module.exports.intern = {
 
-  run: async function(seneca, spec, done) {
+  run: function(seneca, spec, done) {
     var callmap = spec.context
     next_call(0)
     
