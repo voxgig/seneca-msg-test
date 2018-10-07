@@ -124,7 +124,7 @@ const intern = (module.exports.intern = {
       var msg = Object.assign(
         {},
         params,
-        Jsonic(spec.pattern),
+        spec.pattern ? Jsonic(spec.pattern) : {},
         Jsonic(call.pattern)
       )
       var msgstr = Jsonic.stringify(msg)
