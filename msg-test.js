@@ -154,23 +154,23 @@ const intern = (module.exports.intern = {
           }
         }
         
-        if(null == call.out) {
+        if(null === call.out) {
           if(null != out ) {
             return done(new Error('Output not expected for: '+
                                  msgstr+', out: '+out))
           }
         }
-        else {
+        else if(null != call.out) {
           if(null == out ) {
             return done(new Error('Output expected for: '+
                                  msgstr+', was null'))
           }
-
-
-          var result = Optioner(call.out,{must_match_literals:true})(out)
-          if(result.error) {
-            return done(new Error('Output for: '+msgstr+
-                                 ' was invalid: '+result.error.message))
+          else {
+            var result = Optioner(call.out,{must_match_literals:true})(out)
+            if(result.error) {
+              return done(new Error('Output for: '+msgstr+
+                                    ' was invalid: '+result.error.message))
+            }
           }
         }
 

@@ -88,6 +88,11 @@ lab.test('data-sequence', SenecaMsgTest(
         params: {q:{a:1}},
         out: [{a:1}]
       },
+      // don't care about output
+      {
+        pattern: 'cmd:list',
+        params: {q:{a:1}},
+      },
       {
         pattern: 'cmd:err',
         params: {text:'foo'},
