@@ -8,8 +8,8 @@
     "prettier": "prettier --write --no-semi --single-quote *.js lib/*.js test/*.js",
     "coveralls": "lab -s -P test -r lcov | coveralls",
     "clean": "rm -rf node_modules yarn.lock package-lock.json",
-    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"`; echo TAG: v$REPO_VERSION; git commit -a -m v$REPO_VERSION; git push; git tag v$REPO_VERSION; git push --tags;",
-    "repo-publish": "npm run repo-tag; npm publish"
+    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"`; echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
+    "repo-publish": "npm run prettier && npm test && npm run repo-tag && npm publish"
   },
   "repository": {
     "type": "git",
@@ -27,16 +27,17 @@
   },
   "homepage": "https://github.com/voxgig/seneca-msg-test#readme",
   "dependencies": {
-    "inks": "0.1",
-    "jsonic": "0.3",
-    "optioner": "3.0"
+    "inks": "^0.1.0",
+    "jsonic": "^0.3.1",
+    "optioner": "^3.0.0"
   },
   "devDependencies": {
-    "code": "4",
-    "coveralls": "3",
-    "lab": "14",
-    "prettier": "1",
-    "seneca": "github:senecajs/seneca",
-    "seneca-entity": "2.3"
+    "code": "^5.2.4",
+    "coveralls": "^3.0.3",
+    "lab": "^18.0.2",
+    "prettier": "^1.17.0",
+    "seneca": "^3.9.0",
+    "seneca-entity": "^3.3.0",
+    "seneca-promisify": "^0.7.1"
   }
 }
