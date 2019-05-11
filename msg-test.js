@@ -36,7 +36,8 @@ const optioner = Optioner({
         .default({}),
       out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),
       err: Joi.object().unknown(),
-      delegate: Joi.string()
+      delegate: Joi.string(),
+      verify: Joi.func()
     })
   )
 })
@@ -51,6 +52,8 @@ function msg_test(seneca, spec) {
   return test
 
   async function test() {
+    await seneca.ready()
+  
     if (spec.test) {
       seneca.test(null, spec.log ? 'print' : null)
     }
@@ -215,6 +218,21 @@ const intern = (module.exports.intern = {
           }
         }
 
+        if(null != call.verify) {
+          var result = call.verify(call, callmap)
+          if (null != result && true !== result ) {
+            return done(
+              new Error(
+                'Verify of: ' +
+                  msgstr +
+                  ' failed: ' +
+                  (result.message || result)
+              )
+            )
+          }
+
+        }
+        
         if (call.name) {
           callmap[call.name] = {
             top_pattern: spec.pattern,
