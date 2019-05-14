@@ -150,7 +150,7 @@ lab.test(
         {
           pattern: 'cmd:err',
           params: { text: 'foo' },
-          err: { message: 'seneca: Action cmd:err,role:foo failed: foo.' }
+          err: { msg: 'seneca: Action cmd:err,role:foo failed: foo.' }
         }
       ]
     }

@@ -53,7 +53,7 @@ function msg_test(seneca, spec) {
 
   async function test() {
     await seneca.ready()
-  
+
     if (spec.test) {
       seneca.test(null, spec.log ? 'print' : null)
     }
@@ -218,9 +218,9 @@ const intern = (module.exports.intern = {
           }
         }
 
-        if(null != call.verify) {
+        if (null != call.verify) {
           var result = call.verify(call, callmap)
-          if (null != result && true !== result ) {
+          if (null != result && true !== result) {
             return done(
               new Error(
                 'Verify of: ' +
@@ -230,9 +230,8 @@ const intern = (module.exports.intern = {
               )
             )
           }
-
         }
-        
+
         if (call.name) {
           callmap[call.name] = {
             top_pattern: spec.pattern,
