@@ -93,6 +93,12 @@ lab.test(
           pattern: 'cmd:qaz',
           params: { y: 'd' },
           out: { x: 1, y: 'd', z: 'B', w: 'BB' }
+        },
+        {
+          delegate: [{ w: 'CC' }, { custom: { z: 'C' } }],
+          pattern: 'cmd:qaz',
+          params: { y: 'e' },
+          out: { x: 1, y: 'e', z: 'C', w: 'CC' }
         }
       ]
     }
@@ -157,7 +163,69 @@ lab.test(
   )
 )
 
-// TODO: provide in common-server-test
+lab.test('bad-delegate', async () => {
+  var msgfunc = SenecaMsgTest(seneca_instance({ log: 'silent' }), {
+    test: true,
+    pattern: 'a:1',
+    calls: [
+      {
+        delegate: 'bad',
+        pattern: 'b:1'
+      }
+    ]
+  })()
+
+  await expect(msgfunc).reject(
+    Error,
+    'Delegate not defined: bad. Message was: {a:1,b:1}'
+  )
+})
+
+lab.test(
+  'dynamic-delegate',
+  SenecaMsgTest(
+    seneca_instance({ log: 'silent' }, function(seneca) {
+      return seneca
+        .use('promisify')
+        .message('a:1', async function(msg) {
+          return { b: msg.b + 1 }
+        })
+        .message('c:1', async function(msg) {
+          return { b: msg.b }
+        })
+    }),
+    {
+      test: true,
+      print: false,
+      pattern: 'x:1',
+      calls: [
+        {
+          name: 'a',
+          pattern: 'a:1',
+          params: { b: 2 },
+          out: { b: 3 },
+          verify: function(call, callmap, spec, seneca) {
+            spec.delegates.d0 = seneca.delegate(call.out)
+          }
+        },
+        {
+          delegate: 'd0',
+          pattern: 'c:1',
+          out: { b: 3 }
+        },
+        {
+          delegate: function(call, callmap) {
+            return this.delegate(callmap.a.out)
+          },
+          pattern: 'c:1',
+          out: { b: 3 }
+        }
+      ]
+    }
+  )
+)
+
 function seneca_instance(options, setup) {
+  setup = setup || (x => x)
   return setup(Seneca(options).use('entity'))
 }

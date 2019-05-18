@@ -1,6 +1,6 @@
 {
   "name": "seneca-msg-test",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Structured testing of seneca plugin messages.",
   "main": "msg-test.js",
   "scripts": {
