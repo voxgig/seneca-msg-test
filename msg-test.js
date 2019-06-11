@@ -130,7 +130,7 @@ const intern = (module.exports.intern = {
         var params = {}
 
         if ('function' === typeof call.params) {
-          params = call.params(call, callmap, spec)
+          params = call.params(call, callmap, spec, seneca)
         } else {
           Object.keys(call.params).forEach(function(pk) {
             var pv = call.params[pk]
