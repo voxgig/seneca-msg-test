@@ -2,6 +2,7 @@
 'use strict'
 
 const Util = require('util')
+const Assert = require('assert')
 
 const Jsonic = require('jsonic')
 const Inks = require('inks')
@@ -31,9 +32,10 @@ const optioner = Optioner({
       print: Joi.boolean().default(false),
       print_context: Joi.boolean().default(false),
       pattern: Joi.string().min(3),
-      params: Joi.object()
-        .unknown()
-        .default({}),
+      params: Joi.alternatives().try(
+        Joi.object().unknown(),
+        Joi.func()
+      ).default({}),
       out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),
       err: Joi.object().unknown(),
       delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
@@ -45,6 +47,8 @@ const optioner = Optioner({
 function msg_test(seneca, spec) {
   spec = optioner.check(spec)
 
+  Assert('object' === typeof(spec.delegates))
+  
   // top level `pattern` replaces `fix`; `fix` deprecated as does not override
   spec.pattern = '' === spec.pattern ? spec.fix : spec.pattern
 
@@ -125,16 +129,22 @@ const intern = (module.exports.intern = {
         }
 
         var params = {}
-        Object.keys(call.params).forEach(function(pk) {
-          var pv = call.params[pk]
-
-          pk = Inks(pk, callmap)
-          if ('string' === typeof pv) {
-            pv = Inks(pv, callmap)
-          }
-
-          params[pk] = pv
-        })
+        
+        if('function' === typeof(call.params)) {
+          params = call.params(call, callmap, spec)
+        }
+        else {
+          Object.keys(call.params).forEach(function(pk) {
+            var pv = call.params[pk]
+            
+            pk = Inks(pk, callmap)
+            if ('string' === typeof pv) {
+              pv = Inks(pv, callmap)
+            }
+            
+            params[pk] = pv
+          })
+        }
 
         var print = spec.print || call.print
 
