@@ -202,7 +202,9 @@ lab.test(
         {
           name: 'a',
           pattern: 'a:1',
-          params: function() { return { b: 2 } },
+          params: function() {
+            return { b: 2 }
+          },
           out: { b: 3 },
           verify: function(call, callmap, spec, seneca) {
             spec.delegates.d0 = seneca.delegate(call.out)
