@@ -1,16 +1,13 @@
 /* Copyright © 2018-2019 voxgig ltd. CONFIDENTIAL AND PROPRIETARY. */
 'use strict'
 
-const Util = require('util')
-
-const Lab = require('lab')
-const Code = require('code')
+const Lab = require('@hapi/lab')
+const Code = require('@hapi/code')
 const lab = (exports.lab = Lab.script())
 const expect = Code.expect
 
 const SenecaMsgTest = require('../')
 const Seneca = require('seneca')
-const Joi = SenecaMsgTest.Joi
 
 lab.test(
   'happy',
@@ -148,10 +145,12 @@ lab.test(
           params: { q: { a: 1 } },
           out: [{ a: 1 }]
         },
-        // don't care about output
+
         {
           pattern: 'cmd:list',
-          params: { q: { a: 1 } }
+          // deep deref
+          params: { q: { id: '`foo/a1:out.id`' } },
+          out: [{ a: 1 }]
         },
         {
           pattern: 'cmd:err',

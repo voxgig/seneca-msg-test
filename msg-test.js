@@ -132,16 +132,7 @@ const intern = (module.exports.intern = {
         if ('function' === typeof call.params) {
           params = call.params(call, callmap, spec, seneca)
         } else {
-          Object.keys(call.params).forEach(function(pk) {
-            var pv = call.params[pk]
-
-            pk = Inks(pk, callmap)
-            if ('string' === typeof pv) {
-              pv = Inks(pv, callmap)
-            }
-
-            params[pk] = pv
-          })
+          params = Inks(call.params, callmap)
         }
 
         var print = spec.print || call.print
@@ -207,7 +198,7 @@ const intern = (module.exports.intern = {
                 new Error('Output expected for: ' + msgstr + ', was null')
               )
             } else {
-              var result = Optioner(call.out, { must_match_literals: true })(
+              result = Optioner(call.out, { must_match_literals: true })(
                 out
               )
               if (result.error) {
@@ -224,7 +215,7 @@ const intern = (module.exports.intern = {
           }
 
           if (null != call.verify) {
-            var result = call.verify(call, callmap, spec, instance)
+            result = call.verify(call, callmap, spec, instance)
             if (null != result && true !== result) {
               return done(
                 new Error(
