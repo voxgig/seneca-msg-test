@@ -198,9 +198,7 @@ const intern = (module.exports.intern = {
                 new Error('Output expected for: ' + msgstr + ', was null')
               )
             } else {
-              result = Optioner(call.out, { must_match_literals: true })(
-                out
-              )
+              result = Optioner(call.out, { must_match_literals: true })(out)
               if (result.error) {
                 return done(
                   new Error(
