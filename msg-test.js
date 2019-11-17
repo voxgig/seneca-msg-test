@@ -26,6 +26,9 @@ const optioner = Optioner({
   delegates: Joi.object()
     .pattern(/^/, Joi.array().items(Joi.object().allow(null)))
     .default({}),
+  allow: Joi.object({
+    missing: Joi.boolean().default(false),
+  }).default(),
   calls: Joi.array().items(
     Joi.object({
       name: Joi.string().min(1),
@@ -73,26 +76,30 @@ function msg_test(seneca, spec) {
       default$: {}
     })
 
-    const foundmsgs = seneca
-      .list(spec.pattern)
-      .map(msg => seneca.util.pattern(msg))
+    var foundmsgs = seneca
+          .list(spec.pattern)
+          .map(msg => seneca.util.pattern(msg))
 
-    const specmsgs = {}
-
+    const specmsgs = []
+    
     spec.calls.forEach(call => {
-      var specmsg = seneca.util.pattern(
-        Jsonic(spec.pattern + ',' + call.pattern)
-      )
-      specmsgs[specmsg] = true
+      var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
+      specmsgs.push(specmsg_obj)
     })
 
-    for (var i = 0; i < foundmsgs.length; i++) {
-      var msg = foundmsgs[i]
-      if (null == specmsgs[msg]) {
-        throw new Error('Test calls not defined for: ' + msg)
+    // remove msgs once found
+    specmsgs.forEach(msg => {
+      var found = seneca.find(msg)
+      if(found) {
+        foundmsgs = foundmsgs.filter(msg=>msg!=found.pattern)
       }
-    }
+    })
 
+    // there should be none left - all should be found
+    if(0 < foundmsgs.length && !spec.allow.missing) {
+      throw new Error('Test calls not defined for: ' + foundmsgs)
+    }
+    
     Object.keys(spec.delegates).forEach(dk => {
       spec.delegates[dk] = seneca.delegate.apply(seneca, spec.delegates[dk])
     })
@@ -213,6 +220,7 @@ const intern = (module.exports.intern = {
           }
 
           if (null != call.verify) {
+            call.result = {msg,err,out,meta}
             result = call.verify(call, callmap, spec, instance)
             if (null != result && true !== result) {
               return done(

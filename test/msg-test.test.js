@@ -18,6 +18,8 @@ lab.test(
           this.make$('foo/bar').load$(msg.bid, reply)
         }).add('role:plugin0,cmd:qaz', function(msg, reply) {
           reply({ x: 1, y: msg.y })
+        }).add('role:plugin0,red:*', function(msg, reply) {
+          reply({ r: msg.red })
         })
       })
     }),
@@ -42,11 +44,65 @@ lab.test(
           pattern: 'cmd:qaz',
           params: { y: 'a' },
           out: { x: 1, y: 'a' }
+        },
+        {
+          pattern: 'red:1',
+          params: {},
+          out: { r: 1 }
         }
       ]
     }
   )
 )
+
+
+lab.test(
+  'missing-calls',
+  async () => {
+    var si = seneca_instance({ log: 'silent' }, function(seneca) {
+      return seneca.use(function plugin0() {
+            this
+          .add('role:plugin0,cmd:zed', ()=>{})
+          .add('role:plugin0,cmd:qaz', ()=>{})
+          .add('role:plugin0,red:*', ()=>{})
+      })
+    })
+    
+    try {
+      await SenecaMsgTest(
+        si,
+        {
+          test: true,
+          pattern: 'role:plugin0',
+          calls: [
+          ]
+        }
+      )()
+    } catch(e) {
+      expect(e.message)
+        .equal('Test calls not defined for: '+
+               'cmd:zed,role:plugin0,cmd:qaz,role:plugin0,red:*,role:plugin0')      
+    }
+
+    try {
+      await SenecaMsgTest(
+        si,
+        {
+          test: true,
+          pattern: 'role:plugin0',
+          allow: {
+            missing: true
+          },
+          calls: [
+          ]
+        }
+      )()
+    } catch(e) {
+      Code.fail('allow.missing allows missing calls')
+    }
+  }
+)
+
 
 lab.test(
   'delegates',
