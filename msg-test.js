@@ -76,29 +76,7 @@ function msg_test(seneca, spec) {
       default$: {}
     })
 
-    var foundmsgs = seneca
-          .list(spec.pattern)
-          .map(msg => seneca.util.pattern(msg))
-
-    const specmsgs = []
-    
-    spec.calls.forEach(call => {
-      var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
-      specmsgs.push(specmsg_obj)
-    })
-
-    // remove msgs once found
-    specmsgs.forEach(msg => {
-      var found = seneca.find(msg)
-      if(found) {
-        foundmsgs = foundmsgs.filter(msg=>msg!=found.pattern)
-      }
-    })
-
-    // there should be none left - all should be found
-    if(0 < foundmsgs.length && !spec.allow.missing) {
-      throw new Error('Test calls not defined for: ' + foundmsgs)
-    }
+    intern.missing_messages(seneca, spec)
     
     Object.keys(spec.delegates).forEach(dk => {
       spec.delegates[dk] = seneca.delegate.apply(seneca, spec.delegates[dk])
@@ -282,5 +260,31 @@ const intern = (module.exports.intern = {
     }
 
     return instance
+  },
+
+  missing_messages: function(seneca, spec) {
+    var foundmsgs = seneca
+        .list(spec.pattern)
+        .map(msg => seneca.util.pattern(msg))
+    
+    const specmsgs = []
+    
+    spec.calls.forEach(call => {
+      var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
+      specmsgs.push(specmsg_obj)
+    })
+    
+    // remove msgs once found
+    specmsgs.forEach(msg => {
+      var found = seneca.find(msg)
+      if(found) {
+        foundmsgs = foundmsgs.filter(msg=>msg!=found.pattern)
+      }
+    })
+
+    // there should be none left - all should be found
+    if(0 < foundmsgs.length && !spec.allow.missing) {
+      throw new Error('Test calls not defined for: ' + foundmsgs)
+    }
   }
 })
