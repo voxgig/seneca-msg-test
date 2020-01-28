@@ -232,6 +232,7 @@ const intern = (module.exports.intern = {
     }
   },
 
+  // TODO: support a default delegate
   handle_delegate: function(instance, call, callmap, spec) {
     if (call.delegate) {
       if ('string' === typeof call.delegate) {

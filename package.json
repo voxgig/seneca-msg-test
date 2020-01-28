@@ -1,6 +1,6 @@
 {
   "name": "seneca-msg-test",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Structured testing of seneca plugin messages.",
   "main": "msg-test.js",
   "scripts": {
@@ -28,17 +28,17 @@
   },
   "homepage": "https://github.com/voxgig/seneca-msg-test#readme",
   "dependencies": {
-    "inks": "^1.0.0",
+    "inks": "^1.0.2",
     "jsonic": "^0.3.1",
-    "optioner": "^4.2.0"
+    "optioner": "^5.0.0"
   },
   "devDependencies": {
-    "@hapi/code": "^7.0.0",
-    "@hapi/lab": "^21.0.0",
-    "coveralls": "^3.0.7",
-    "prettier": "^1.18.2",
-    "seneca": "^3.17.0",
-    "seneca-entity": "^5.2.0",
-    "seneca-promisify": "^1.1.0"
+    "@hapi/code": "^8.0.1",
+    "@hapi/lab": "^22.0.3",
+    "coveralls": "^3.0.9",
+    "prettier": "^1.19.1",
+    "seneca": "^3.20.0",
+    "seneca-entity": "^7.0.0",
+    "seneca-promisify": "^1.2.0"
   }
 }
