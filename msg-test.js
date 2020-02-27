@@ -11,6 +11,7 @@ const Joi = Optioner.Joi
 
 module.exports = msg_test
 module.exports.Joi = Joi
+module.exports.LN = LN
 
 const optioner = Optioner({
   test: Joi.boolean().default(true),
@@ -199,6 +200,8 @@ const intern = (module.exports.intern = {
 
           if (null != call.verify) {
             call.result = { msg, err, out, meta }
+
+            // TODO: handle Joi validation result
             result = call.verify(call, callmap, spec, instance)
             if (null != result && true !== result) {
               return done(
@@ -289,3 +292,16 @@ const intern = (module.exports.intern = {
     }
   }
 })
+
+// Get line number of test message in spec file.
+// Use as an extra value in msg: `+LN()`
+function LN() {
+  return (
+    ',LN:' +
+    new Error().stack
+      .split('\n')[2]
+      .match(/\/([^./]+)[^/]*\.js:(\d+):/)
+      .filter((x, i) => i == 1 || i == 2)
+      .join('~')
+  )
+}
