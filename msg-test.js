@@ -42,7 +42,8 @@ const optioner = Optioner({
       out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),
       err: Joi.object().unknown(),
       delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
-      verify: Joi.func()
+      verify: Joi.func(),
+      line: Joi.string()
     })
   )
 })
@@ -190,6 +191,7 @@ const intern = (module.exports.intern = {
                   new Error(
                     'Output for: ' +
                       msgstr +
+                      (call.line ? ' (' + call.line + ')' : '') +
                       ' was invalid: ' +
                       result.error.message
                   )
@@ -295,13 +297,17 @@ const intern = (module.exports.intern = {
 
 // Get line number of test message in spec file.
 // Use as an extra value in msg: `+LN()`
-function LN() {
-  return (
-    ',LN:' +
-    new Error().stack
-      .split('\n')[2]
-      .match(/\/([^./]+)[^/]*\.js:(\d+):/)
-      .filter((x, i) => i == 1 || i == 2)
-      .join('~')
-  )
+function LN(t) {
+  var line = new Error().stack
+    .split('\n')[2]
+    .match(/\/([^./]+)[^/]*\.js:(\d+):/)
+    .filter((x, i) => i == 1 || i == 2)
+    .join('~')
+
+  if (null == t) {
+    return ',LN:' + line
+  } else {
+    t.line = line
+    return t
+  }
 }
