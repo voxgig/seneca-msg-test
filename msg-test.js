@@ -18,19 +18,15 @@ module.exports.LN = LN
 const optioner = Optioner({
   test: Joi.boolean().default(true),
   log: Joi.boolean().default(false),
-  data: Joi.object()
-    .unknown()
-    .default({}),
-  context: Joi.object()
-    .unknown()
-    .default({}),
+  data: Joi.object().unknown().default({}),
+  context: Joi.object().unknown().default({}),
   fix: Joi.string().default(''), // DEPRECATED, use pattern instead
   pattern: Joi.string().default(''),
   delegates: Joi.object()
     .pattern(/^/, Joi.array().items(Joi.object().allow(null)))
     .default({}),
   allow: Joi.object({
-    missing: Joi.boolean().default(false)
+    missing: Joi.boolean().default(false),
   }).default(),
   calls: Joi.array().items(
     Joi.object({
@@ -45,9 +41,9 @@ const optioner = Optioner({
       err: Joi.object().unknown(),
       delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
       verify: Joi.func(),
-      line: Joi.string()
+      line: Joi.string(),
     })
-  )
+  ),
 })
 
 function msg_test(seneca, spec) {
@@ -77,12 +73,12 @@ function msg_test(seneca, spec) {
 
     await seneca.post('role:mem-store,cmd:import', {
       json: datajson,
-      default$: {}
+      default$: {},
     })
 
     intern.missing_messages(seneca, spec)
 
-    Object.keys(spec.delegates).forEach(dk => {
+    Object.keys(spec.delegates).forEach((dk) => {
       spec.delegates[dk] = seneca.delegate.apply(seneca, spec.delegates[dk])
     })
 
@@ -91,11 +87,11 @@ function msg_test(seneca, spec) {
 }
 
 const intern = (module.exports.intern = {
-  run: async function(seneca, spec) {
+  run: async function (seneca, spec) {
     var callmap = spec.context
 
     return new Promise((resolve, reject) => {
-      next_call(0, function(err) {
+      next_call(0, function (err) {
         if (err) {
           return reject(err)
         } else {
@@ -145,7 +141,7 @@ const intern = (module.exports.intern = {
 
         var instance = intern.handle_delegate(seneca, call, callmap, spec)
 
-        instance.act(msg, function(err, out, meta) {
+        instance.act(msg, function (err, out, meta) {
           if (print) {
             console.log('ERROR  : ', err)
             console.log(
@@ -187,15 +183,13 @@ const intern = (module.exports.intern = {
                 new Error('Output expected for: ' + msgstr + ', was null')
               )
             } else {
-              //var current_call_out = call.out
-
               var current_call_out = Inks(call.out, callmap, {
-                exclude: (k,v) => Joi.isSchema(v, {legacy:true}) 
+                exclude: (k, v) => Joi.isSchema(v, { legacy: true }),
               })
 
-              //console.log('CCO', call.out, current_call_out, callmap)
-
-              result = Optioner(current_call_out, { must_match_literals: true })(out)
+              result = Optioner(current_call_out, {
+                must_match_literals: true,
+              })(out)
               if (result.error) {
                 return done(
                   new Error(
@@ -235,7 +229,7 @@ const intern = (module.exports.intern = {
               msg: msg,
               err: err,
               out: out,
-              meta: meta
+              meta: meta,
             }
           }
 
@@ -248,7 +242,7 @@ const intern = (module.exports.intern = {
   },
 
   // TODO: support a default delegate
-  handle_delegate: function(instance, call, callmap, spec) {
+  handle_delegate: function (instance, call, callmap, spec) {
     if (call.delegate) {
       if ('string' === typeof call.delegate) {
         instance = spec.delegates[call.delegate]
@@ -278,23 +272,23 @@ const intern = (module.exports.intern = {
     return instance
   },
 
-  missing_messages: function(seneca, spec) {
+  missing_messages: function (seneca, spec) {
     var foundmsgs = seneca
       .list(spec.pattern)
-      .map(msg => seneca.util.pattern(msg))
+      .map((msg) => seneca.util.pattern(msg))
 
     const specmsgs = []
 
-    spec.calls.forEach(call => {
+    spec.calls.forEach((call) => {
       var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
       specmsgs.push(specmsg_obj)
     })
 
     // remove msgs once found
-    specmsgs.forEach(msg => {
+    specmsgs.forEach((msg) => {
       var found = seneca.find(msg)
       if (found) {
-        foundmsgs = foundmsgs.filter(msg => msg != found.pattern)
+        foundmsgs = foundmsgs.filter((msg) => msg != found.pattern)
       }
     })
 
@@ -302,7 +296,7 @@ const intern = (module.exports.intern = {
     if (0 < foundmsgs.length && !spec.allow.missing) {
       throw new Error('Test calls not defined for: ' + foundmsgs)
     }
-  }
+  },
 })
 
 // Get line number of test message in spec file.
