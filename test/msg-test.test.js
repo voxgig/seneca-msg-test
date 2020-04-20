@@ -9,6 +9,8 @@ const expect = Code.expect
 const SenecaMsgTest = require('../')
 const Seneca = require('seneca')
 
+const Joi = require('@hapi/joi')
+
 lab.test(
   'happy',
   SenecaMsgTest(
@@ -18,10 +20,10 @@ lab.test(
           this.make$('foo/bar').load$(msg.bid, reply)
         })
           .add('role:plugin0,cmd:qaz', function(msg, reply) {
-            reply({ x: 1, y: msg.y })
+            reply({ x: 1, y: msg.y, b: msg.b })
           })
           .add('role:plugin0,red:*', function(msg, reply) {
-            reply({ r: msg.red })
+            reply({ r: msg.red, nm: msg.n.m, x: 1 })
           })
       })
     }),
@@ -38,19 +40,21 @@ lab.test(
       pattern: 'role:plugin0',
       calls: [
         {
+          name: 'zed0',
           pattern: 'cmd:zed',
           params: { bid: 'b0' },
           out: { b: 0 }
         },
         {
+          name: 'qaz0',
           pattern: 'cmd:qaz',
-          params: { y: 'a' },
-          out: { x: 1, y: 'a' }
+          params: { y: 'a', b: '`zed0:out.b`' },
+          out: { x: 1, y: 'a', b: 0 }
         },
         {
           pattern: 'red:1',
-          params: {},
-          out: { r: 1 }
+          params: { n:{m:'`zed0:out.b`'}},
+          out: { r: Joi.number().required(), nm:0, x: '`qaz0:out.x`' }
         }
       ]
     }

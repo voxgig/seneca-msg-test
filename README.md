@@ -19,6 +19,19 @@ against expectations.
 
 See [example](msg-test/example) folder
 
+## Note
+
+To use `@hapi/joi`, require with:
+
+```
+const Joi = require('seneca-msg-test').Joi
+
+```
+
+This ensures that the Joi versions match.
+
+
+
 
 ### Test Specification
 

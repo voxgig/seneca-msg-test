@@ -1,5 +1,7 @@
-/* Copyright (c) 2018-2019 voxgig and other contributors, MIT License */
+/* Copyright (c) 2018-2020 voxgig and other contributors, MIT License */
 'use strict'
+
+// TODO: add line numbers to all fail msgs!
 
 const Util = require('util')
 const Assert = require('assert')
@@ -185,7 +187,15 @@ const intern = (module.exports.intern = {
                 new Error('Output expected for: ' + msgstr + ', was null')
               )
             } else {
-              result = Optioner(call.out, { must_match_literals: true })(out)
+              //var current_call_out = call.out
+
+              var current_call_out = Inks(call.out, callmap, {
+                exclude: (k,v) => Joi.isSchema(v, {legacy:true}) 
+              })
+
+              //console.log('CCO', call.out, current_call_out, callmap)
+
+              result = Optioner(current_call_out, { must_match_literals: true })(out)
               if (result.error) {
                 return done(
                   new Error(
