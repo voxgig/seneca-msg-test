@@ -1,7 +1,7 @@
 # seneca-msg-test
 
 [![npm version][npm-badge]][npm-url]
-[![Build Status][travis-badge]][travis-url]
+![Build](https://github.com/voxgig/seneca-msg-test/workflows/build/badge.svg)
 [![Dependency Status][david-badge]][david-url]
 [![Coveralls][BadgeCoveralls]][Coveralls]
 [![Maintainability](https://api.codeclimate.com/v1/badges/c55366fd7b8dd36d9865/maintainability)](https://codeclimate.com/github/voxgig/seneca-msg-test/maintainability)
