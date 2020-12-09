@@ -294,7 +294,7 @@ const intern = (module.exports.intern = {
 
     // there should be none left - all should be found
     if (0 < foundmsgs.length && !spec.allow.missing) {
-      throw new Error('Test calls not defined for: ' + foundmsgs)
+      throw new Error('Test calls not defined for: ' + foundmsgs.join('; '))
     }
   },
 })
@@ -304,7 +304,7 @@ const intern = (module.exports.intern = {
 function LN(t) {
   var line = new Error().stack
     .split('\n')[2]
-    .match(/\/([^./]+)[^/]*\.js:(\d+):/)
+    .match(/[\/\\]([^./\\]+)[^/\\]*\.js:(\d+):/)
     .filter((x, i) => i == 1 || i == 2)
     .join('~')
 

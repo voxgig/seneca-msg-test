@@ -79,7 +79,7 @@ lab.test('missing-calls', async () => {
   } catch (e) {
     expect(e.message).equal(
       'Test calls not defined for: ' +
-        'cmd:zed,role:plugin0,cmd:qaz,role:plugin0,red:*,role:plugin0'
+        'cmd:zed,role:plugin0; cmd:qaz,role:plugin0'
     )
   }
 
