@@ -1,0 +1,2566 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tests &amp; Coverage</title>
+    <script>
+      headings = [];
+    
+      onload = function () {
+          headings = document.querySelectorAll('h2');
+          reset();
+      };
+    
+      onscroll = function (e) {
+          var heading = find(window.scrollY);
+          if (!heading) {
+            var current = document.querySelector('#menu a.active');
+            if (current) {
+              current.className = '';
+            }
+            return;
+          }
+          var links = document.querySelectorAll('#menu a')
+                  , link;
+    
+          for (var i = 0, len = links.length; i < len; ++i) {
+              link = links[i];
+              link.className = link.getAttribute('href') == '#' + heading.id ? 'active' : '';
+          }
+      };
+    
+      function find (y) {
+          var i = headings.length
+                  , heading;
+    
+          while (i--) {
+              heading = headings[i];
+              if (y >= heading.offsetTop) {
+                  return heading;
+              }
+          }
+      }
+    
+      function toggle (className) {
+    
+          var elements = document.getElementsByClassName(className);
+    
+          for (var i = 0, il = elements.length; i < il; ++i) {
+              var element = elements[i];
+    
+              if (element.classList.contains('hide')) {
+                  element.classList.remove('hide');
+                  element.classList.add('show');
+              }
+              else {
+                  element.classList.remove('show');
+                  element.classList.add('hide');
+              }
+          };
+      }
+    
+      function reset () {
+    
+          var shownElements = document.getElementsByClassName('show');
+          var filterElements = document.querySelectorAll('input[type=checkbox]');
+    
+          for (var i = 0, il = filterElements.length; i < il; ++i) {
+              filterElements[i].checked = false;
+          }
+    
+          // Check any filters with visible elements
+          for (i = 0, il = shownElements.length; i < il; ++i) {
+              var shownElement = shownElements[i];
+              var classNames = shownElement.className.split(' ');
+              for (var ci = 0, cl = classNames.length; ci < cl; ++ci){
+                  var element = document.getElementById('show-' + classNames[ci]);
+                  if (element) {
+                      element.checked = true;
+                  }
+              }
+          }
+      };
+    
+      function filter (element) {
+    
+          toggle(element.value);
+          reset();
+      }
+    </script>
+    <style>
+        body {
+            font: 14px/1.6 Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: #2c2c2c;
+        }
+    
+        #tests, #coverage, #linting {
+            padding: 60px;
+        }
+    
+        h1 a:hover {
+            text-decoration: none;
+        }
+    
+        a[href^="#"],
+        a[href^="#"]:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+    
+        h2 {
+            width: 80%;
+            margin-top: 80px;
+            margin-bottom: 0;
+            font-weight: 100;
+            letter-spacing: 1px;
+        }
+    
+        ul {
+            margin-top: 20px;
+            padding: 0 15px;
+            width: 100%;
+        }
+    
+        ul li {
+            float: left;
+            width: 40%;
+            margin-top: 5px;
+            margin-right: 60px;
+            list-style: none;
+            padding: 5px 0;
+            font-size: 12px;
+        }
+    
+        #menu {
+            position: fixed;
+            font-size: 12px;
+            overflow-y: auto;
+            top: 0;
+            right: 0;
+            margin: 0;
+            height: 100%;
+            padding: 15px 15px;
+            border-left: 1px solid #eee;
+            background-color: #666;
+            z-index: 1;
+        }
+    
+        #menu::after {
+            display: block;
+            content: '';
+            padding-top: 80px;
+        }
+    
+        #menu li a {
+            display: block;
+            color: white;
+            padding: 0 5px 0 35px;
+            transition: background 300ms;
+            text-decoration: none;
+        }
+    
+        #menu li {
+            position: relative;
+            list-style: none;
+        }
+    
+        #menu a:hover,
+        #menu a.active {
+            text-decoration: none;
+            background: rgba(255, 255, 255, .4);
+        }
+    
+        #menu li:hover .cov {
+            opacity: 1;
+        }
+    
+        #menu li .dirname {
+            opacity: .60;
+            padding-right: 2px;
+        }
+    
+        #menu li .basename {
+            opacity: 1;
+        }
+    
+        #menu .cov, #menu .lint {
+            background: rgba(0, 0, 0, .3);
+            position: absolute;
+            top: 0;
+            font-size: 9px;
+            text-align: center;
+            opacity: .8;
+            width: 22px;
+            border-radius: 10px;
+            padding: 2px 3px;
+        }
+    
+        #files .stats:nth-child(2n):not(.hide) {
+            display: inline-block;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    
+        .stats div {
+            float: left;
+            padding: 0 5px;
+        }
+    
+        .stats::after {
+            display: block;
+            content: '';
+            clear: both;
+        }
+    
+        .stats .sloc::after {
+            content: ' SLOC';
+            color: #b6b6b6;
+        }
+    
+        .stats .percentage::after {
+            content: ' coverage';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::after {
+            content: ' Covered';
+            color: #b6b6b6;
+        }
+    
+        .stats .misses::after {
+            content: ' Not Covered)';
+            color: #b6b6b6;
+        }
+    
+        .stats .failures::after {
+            content: ' Failures';
+            color: #b6b6b6;
+        }
+    
+        .stats .skipped::after {
+            content: ' Skipped';
+            color: #b6b6b6;
+        }
+    
+        .stats .test-count::after {
+            content: ' Tests';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::after {
+            content: ' ms)';
+            color: #b6b6b6;
+        }
+    
+        .high {
+            color: #00d4b4;
+        }
+    
+        .medium {
+            color: #e87d0d;
+        }
+    
+        .low {
+            color: #d4081a;
+        }
+    
+        .terrible {
+            color: #d4081a;
+            font-weight: bold;
+        }
+    
+        #files table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #files thead {
+            display: none;
+        }
+    
+        table td.line,
+        table td.lint,
+        table td.hits,
+        table td.original-line {
+            width: 20px;
+            background: #eaeaea;
+            text-align: right;
+            font-size: 11px;
+            padding: 0 10px;
+            color: #949494;
+            white-space: nowrap;
+        }
+    
+        table td.hits {
+            width: 10px;
+            padding: 2px 5px;
+            color: rgba(0, 0, 0, .2);
+            background: #f0f0f0;
+        }
+    
+        table td.lint.empty {
+            width: 0;
+            padding: 0;
+        }
+    
+        table td.lint > span {
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+    
+        table td.lint .errors {
+            background-color: red;
+        }
+    
+        table td.lint .warnings {
+            background-color: orange;
+        }
+    
+        tr.miss td.line,
+        tr.miss td.hits {
+            background: #e6c3c7;
+        }
+    
+        tr.miss td {
+            background: #f8d5d8;
+        }
+    
+        td.source {
+            padding-left: 15px;
+            line-height: 15px;
+            white-space: pre;
+            font: 12px monaco, monospace;
+        }
+    
+        td.source div {
+            display: inline-block;
+        }
+    
+        td.source div.true {
+            background: #bae8bf;
+        }
+    
+        td.source div.false {
+            background: #e8e5ba;
+        }
+    
+        td.source div.never {
+            background: #f8d5d8;
+        }
+    
+        #tests table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #tests thead {
+            background: #F5F5F5;
+        }
+    
+        #tests tr {
+            border: 1px solid #ccc;
+        }
+    
+        #tests td {
+            padding-left: 8px;
+            vertical-align: top;
+        }
+    
+        #tests .success:nth-child(2n) {
+            background: #F5F5F5;
+        }
+    
+        #tests .failure {
+            background: #FF9E9E;
+        }
+    
+        #tests table .skipped {
+            background: #AA82FF;
+        }
+    
+        #tests .success {
+            color: #949494;
+        }
+    
+        #tests .failure .test-title {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    
+        #tests .stack {
+            margin-top: 4px;
+            padding-left: 15px;
+            margin-bottom: 12px;
+            font: 12px monaco, monospace;
+            white-space: pre;
+            line-height: 15px;
+        }
+    
+        .hide {
+            display: none;
+        }
+    
+        .show {
+            display: inherit;
+        }
+    
+        #tests table .show {
+            display: table-row;
+        }
+    
+        [data-tooltip] {
+            position: relative;
+        }
+    
+        [data-tooltip]:hover:before {
+            border: solid;
+            border-color: #333 transparent;
+            border-width: 6px 6px 0 6px;
+            bottom: 20px;
+            content: "";
+            left: 0;
+            position: absolute;
+            z-index: 99;
+        }
+    
+        [data-tooltip]:hover:after {
+            background: #333;
+            background: rgba(0, 0, 0, .8);
+            border-radius: 5px;
+            bottom: 26px;
+            color: #fff;
+            left: -10px;
+            padding: 5px 15px;
+            position: absolute;
+            z-index: 98;
+            content: attr(data-tooltip);
+            white-space: pre;
+            text-align: left;
+        }
+    
+        .line[data-tooltip]:hover:after {
+            content: "Line number";
+        }
+    
+        .hits[data-tooltip]:hover:after {
+            content: "Number of hits";
+        }
+    
+        .miss .source[data-tooltip]:hover:after {
+            content: "Missed line";
+        }
+    
+        .miss.true[data-tooltip]:hover:after {
+            content: "Condition always true";
+        }
+    
+        .miss.false[data-tooltip]:hover:after {
+            content: "Condition always false";
+        }
+    
+        .miss.never[data-tooltip]:hover:after {
+            content: "Statement never reached";
+        }
+    
+        .lint .errors[data-tooltip]:hover:after {
+            content: "Linting errors:\A" attr(data-tooltip);
+        }
+    
+        .lint .warnings[data-tooltip]:hover:after {
+            content: "Linting warnings:\A" attr(data-tooltip);
+        }
+    
+        .original-line[data-tooltip]:hover:after {
+            content: "Original line in file " attr(data-tooltip);
+        }
+    
+        #filters {
+            width: 75%;
+            margin-top: 25px;
+        }
+    
+        #filters label {
+            margin-right: 10px;
+        }
+    
+        .lint-stats .lint-errors::after {
+            content: ' linting errors';
+            color: #b6b6b6;
+        }
+    
+        .lint-stats .lint-warnings::after {
+            content: ' linting warnings';
+            color: #b6b6b6;
+        }
+    
+        .lint-entry {
+            color: #b6b6b6;
+            float: none;
+            padding: 0;
+        }
+    
+        .lint-entry .level-ERROR {
+            color: #d4081a;
+        }
+    
+        .lint-entry .level-WARNING {
+            color: #e87d0d;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="menu">
+        <li><a href="#tests">Test Report</a></li>
+        <li><a href="#coverage">Coverage Report</a></li>
+        <li class="">
+            <span class="cov high">85.38</span>
+            <a href="#msg-test.js"><span class="basename">msg-test.js</span></a>
+        </li>
+        <li><a href="#linting">Linting Report</a></li>
+    </div>
+    <div id="tests">
+      <h1>Test Report</h1>
+      <div class="stats high">
+          <div class="failures">0</div>
+          <div class="skipped">0</div>
+          <div class="test-count">6</div>
+          <div class="duration">925</div>
+      </div>
+      <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="success" id="show-success">
+          <label for="show-success">Show Success</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="failure" id="show-failure">
+          <label for="show-failure">Show Failure</label>
+          <br>
+      </div>
+      <table>
+          <thead>
+          <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Duration (ms)</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr class="show  success">
+              <td class="test-id">1</td>
+              <td class="test-title">happy
+                  
+              </td>
+              <td class="test-duration">162</td>
+          </tr>
+          <tr class="show  success">
+              <td class="test-id">2</td>
+              <td class="test-title">missing-calls
+                  
+              </td>
+              <td class="test-duration">250</td>
+          </tr>
+          <tr class="show  success">
+              <td class="test-id">3</td>
+              <td class="test-title">delegates
+                  
+              </td>
+              <td class="test-duration">130</td>
+          </tr>
+          <tr class="show  success">
+              <td class="test-id">4</td>
+              <td class="test-title">data-sequence
+                  
+              </td>
+              <td class="test-duration">125</td>
+          </tr>
+          <tr class="show  success">
+              <td class="test-id">5</td>
+              <td class="test-title">bad-delegate
+                  
+              </td>
+              <td class="test-duration">127</td>
+          </tr>
+          <tr class="show  success">
+              <td class="test-id">6</td>
+              <td class="test-title">dynamic-delegate
+                  
+              </td>
+              <td class="test-duration">120</td>
+          </tr>
+          </tbody>
+      </table>
+    
+    </div>    <div id="coverage">
+        <h1>Code Coverage Report</h1>
+        <div class="stats high">
+            <div class="percentage">85.38%</div>
+            <div class="sloc">260</div>
+            <div class="hits">222</div>
+            <div class="misses">38</div>
+        </div>
+        <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="generated" id="show-generated">
+          <label for="show-generated">Show generated files</label>
+        </div>
+        <div id="files">
+            <div class="file ">
+                <h2 id="msg-test.js">msg-test.js </h2>
+                <div class="stats high">
+                    <div class="percentage">85.38%</div>
+                    <div class="sloc">260</div>
+                    <div class="hits">222</div>
+                    <div class="misses">38</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Lint</th>
+                            <th>Hits</th>
+                            <th>Source</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="msg-test.js__1" class="hit">
+                          <td class="line" data-tooltip>1</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">/* Copyright (c) 2018-2020 voxgig and other contributors, MIT License */</td>
+                          
+                        </tr>            <tr id="msg-test.js__2" class="hit">
+                          <td class="line" data-tooltip>2</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">&#x27;use strict&#x27;</td>
+                          
+                        </tr>            <tr id="msg-test.js__3" class="hit">
+                          <td class="line" data-tooltip>3</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__4" class="hit">
+                          <td class="line" data-tooltip>4</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">// TODO: add line numbers to all fail msgs!</td>
+                          
+                        </tr>            <tr id="msg-test.js__5" class="hit">
+                          <td class="line" data-tooltip>5</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__6" class="hit">
+                          <td class="line" data-tooltip>6</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Util &#x3D; require(&#x27;util&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__7" class="hit">
+                          <td class="line" data-tooltip>7</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Assert &#x3D; require(&#x27;assert&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__8" class="hit">
+                          <td class="line" data-tooltip>8</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__9" class="hit">
+                          <td class="line" data-tooltip>9</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Jsonic &#x3D; require(&#x27;jsonic&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__10" class="hit">
+                          <td class="line" data-tooltip>10</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Inks &#x3D; require(&#x27;inks&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__11" class="hit">
+                          <td class="line" data-tooltip>11</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Optioner &#x3D; require(&#x27;optioner&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__12" class="hit">
+                          <td class="line" data-tooltip>12</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Joi &#x3D; Optioner.Joi</td>
+                          
+                        </tr>            <tr id="msg-test.js__13" class="hit">
+                          <td class="line" data-tooltip>13</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__14" class="hit">
+                          <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports &#x3D; msg_test</td>
+                          
+                        </tr>            <tr id="msg-test.js__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports.Joi &#x3D; Joi</td>
+                          
+                        </tr>            <tr id="msg-test.js__16" class="hit">
+                          <td class="line" data-tooltip>16</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports.LN &#x3D; LN</td>
+                          
+                        </tr>            <tr id="msg-test.js__17" class="hit">
+                          <td class="line" data-tooltip>17</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__18" class="hit">
+                          <td class="line" data-tooltip>18</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const optioner &#x3D; Optioner({</td>
+                          
+                        </tr>            <tr id="msg-test.js__19" class="hit">
+                          <td class="line" data-tooltip>19</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  test: Joi.boolean().default(true),</td>
+                          
+                        </tr>            <tr id="msg-test.js__20" class="hit">
+                          <td class="line" data-tooltip>20</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  log: Joi.boolean().default(false),</td>
+                          
+                        </tr>            <tr id="msg-test.js__21" class="hit">
+                          <td class="line" data-tooltip>21</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  data: Joi.object().unknown().default({}),</td>
+                          
+                        </tr>            <tr id="msg-test.js__22" class="hit">
+                          <td class="line" data-tooltip>22</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  context: Joi.object().unknown().default({}),</td>
+                          
+                        </tr>            <tr id="msg-test.js__23" class="hit">
+                          <td class="line" data-tooltip>23</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  fix: Joi.string().default(&#x27;&#x27;), // DEPRECATED, use pattern instead</td>
+                          
+                        </tr>            <tr id="msg-test.js__24" class="hit">
+                          <td class="line" data-tooltip>24</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  pattern: Joi.string().default(&#x27;&#x27;),</td>
+                          
+                        </tr>            <tr id="msg-test.js__25" class="hit">
+                          <td class="line" data-tooltip>25</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  delegates: Joi.object()</td>
+                          
+                        </tr>            <tr id="msg-test.js__26" class="hit">
+                          <td class="line" data-tooltip>26</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    .pattern(/^/, Joi.array().items(Joi.object().allow(null)))</td>
+                          
+                        </tr>            <tr id="msg-test.js__27" class="hit">
+                          <td class="line" data-tooltip>27</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    .default({}),</td>
+                          
+                        </tr>            <tr id="msg-test.js__28" class="hit">
+                          <td class="line" data-tooltip>28</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  allow: Joi.object({</td>
+                          
+                        </tr>            <tr id="msg-test.js__29" class="hit">
+                          <td class="line" data-tooltip>29</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    missing: Joi.boolean().default(false),</td>
+                          
+                        </tr>            <tr id="msg-test.js__30" class="hit">
+                          <td class="line" data-tooltip>30</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }).default(),</td>
+                          
+                        </tr>            <tr id="msg-test.js__31" class="hit">
+                          <td class="line" data-tooltip>31</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  calls: Joi.array().items(</td>
+                          
+                        </tr>            <tr id="msg-test.js__32" class="hit">
+                          <td class="line" data-tooltip>32</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    Joi.object({</td>
+                          
+                        </tr>            <tr id="msg-test.js__33" class="hit">
+                          <td class="line" data-tooltip>33</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      name: Joi.string().min(1),</td>
+                          
+                        </tr>            <tr id="msg-test.js__34" class="hit">
+                          <td class="line" data-tooltip>34</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      print: Joi.boolean().default(false),</td>
+                          
+                        </tr>            <tr id="msg-test.js__35" class="hit">
+                          <td class="line" data-tooltip>35</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      print_context: Joi.boolean().default(false),</td>
+                          
+                        </tr>            <tr id="msg-test.js__36" class="hit">
+                          <td class="line" data-tooltip>36</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      pattern: Joi.string().min(3),</td>
+                          
+                        </tr>            <tr id="msg-test.js__37" class="hit">
+                          <td class="line" data-tooltip>37</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      params: Joi.alternatives()</td>
+                          
+                        </tr>            <tr id="msg-test.js__38" class="hit">
+                          <td class="line" data-tooltip>38</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        .try(Joi.object().unknown(), Joi.func())</td>
+                          
+                        </tr>            <tr id="msg-test.js__39" class="hit">
+                          <td class="line" data-tooltip>39</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        .default({}),</td>
+                          
+                        </tr>            <tr id="msg-test.js__40" class="hit">
+                          <td class="line" data-tooltip>40</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),</td>
+                          
+                        </tr>            <tr id="msg-test.js__41" class="hit">
+                          <td class="line" data-tooltip>41</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      err: Joi.object().unknown(),</td>
+                          
+                        </tr>            <tr id="msg-test.js__42" class="hit">
+                          <td class="line" data-tooltip>42</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),</td>
+                          
+                        </tr>            <tr id="msg-test.js__43" class="hit">
+                          <td class="line" data-tooltip>43</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      verify: Joi.func(),</td>
+                          
+                        </tr>            <tr id="msg-test.js__44" class="hit">
+                          <td class="line" data-tooltip>44</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      line: Joi.string(),</td>
+                          
+                        </tr>            <tr id="msg-test.js__45" class="hit">
+                          <td class="line" data-tooltip>45</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__46" class="hit">
+                          <td class="line" data-tooltip>46</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  ),</td>
+                          
+                        </tr>            <tr id="msg-test.js__47" class="hit">
+                          <td class="line" data-tooltip>47</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">})</td>
+                          
+                        </tr>            <tr id="msg-test.js__48" class="hit">
+                          <td class="line" data-tooltip>48</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__49" class="hit">
+                          <td class="line" data-tooltip>49</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">function msg_test(seneca, spec) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__50" class="hit">
+                          <td class="line" data-tooltip>50</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">  spec &#x3D; optioner.check(spec)</td>
+                          
+                        </tr>            <tr id="msg-test.js__51" class="hit">
+                          <td class="line" data-tooltip>51</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__52" class="hit">
+                          <td class="line" data-tooltip>52</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">  Assert(&#x27;object&#x27; &#x3D;&#x3D;&#x3D; typeof spec.delegates)</td>
+                          
+                        </tr>            <tr id="msg-test.js__53" class="hit">
+                          <td class="line" data-tooltip>53</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__54" class="hit">
+                          <td class="line" data-tooltip>54</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  // top level &#x60;pattern&#x60; replaces &#x60;fix&#x60;; &#x60;fix&#x60; deprecated as does not override</td>
+                          
+                        </tr>            <tr id="msg-test.js__55" class="chunks">
+                          <td class="line" data-tooltip>55</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>  spec.pattern &#x3D; </div><div class="miss false" data-tooltip>&#x27;&#x27; &#x3D;&#x3D;&#x3D; spec.pattern</div><div> ? </div><div class="miss never" data-tooltip>spec.fix</div><div> : spec.pattern</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__56" class="hit">
+                          <td class="line" data-tooltip>56</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__57" class="hit">
+                          <td class="line" data-tooltip>57</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">  test.run &#x3D; intern.run</td>
+                          
+                        </tr>            <tr id="msg-test.js__58" class="hit">
+                          <td class="line" data-tooltip>58</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">  return test</td>
+                          
+                        </tr>            <tr id="msg-test.js__59" class="hit">
+                          <td class="line" data-tooltip>59</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__60" class="hit">
+                          <td class="line" data-tooltip>60</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  async function test() {</td>
+                          
+                        </tr>            <tr id="msg-test.js__61" class="hit">
+                          <td class="line" data-tooltip>61</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    await seneca.ready()</td>
+                          
+                        </tr>            <tr id="msg-test.js__62" class="hit">
+                          <td class="line" data-tooltip>62</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__63" class="hit">
+                          <td class="line" data-tooltip>63</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    if (spec.test) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__64" class="chunks">
+                          <td class="line" data-tooltip>64</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>      seneca.test(null, </div><div class="miss false" data-tooltip>spec.log</div><div> ? </div><div class="miss never" data-tooltip>&#x27;print&#x27;</div><div> : null)</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__65" class="hit">
+                          <td class="line" data-tooltip>65</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="msg-test.js__66" class="hit">
+                          <td class="line" data-tooltip>66</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__67" class="hit">
+                          <td class="line" data-tooltip>67</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    if (!seneca.has_plugin(&#x27;promisify&#x27;)) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__68" class="hit">
+                          <td class="line" data-tooltip>68</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>5</td>
+                          <td class="source">      seneca.use(&#x27;promisify&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__69" class="hit">
+                          <td class="line" data-tooltip>69</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>5</td>
+                          <td class="source">      await seneca.ready()</td>
+                          
+                        </tr>            <tr id="msg-test.js__70" class="hit">
+                          <td class="line" data-tooltip>70</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="msg-test.js__71" class="hit">
+                          <td class="line" data-tooltip>71</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__72" class="hit">
+                          <td class="line" data-tooltip>72</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    var datajson &#x3D; JSON.stringify(spec.data)</td>
+                          
+                        </tr>            <tr id="msg-test.js__73" class="hit">
+                          <td class="line" data-tooltip>73</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__74" class="hit">
+                          <td class="line" data-tooltip>74</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    await seneca.post(&#x27;role:mem-store,cmd:import&#x27;, {</td>
+                          
+                        </tr>            <tr id="msg-test.js__75" class="hit">
+                          <td class="line" data-tooltip>75</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      json: datajson,</td>
+                          
+                        </tr>            <tr id="msg-test.js__76" class="hit">
+                          <td class="line" data-tooltip>76</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      default$: {},</td>
+                          
+                        </tr>            <tr id="msg-test.js__77" class="hit">
+                          <td class="line" data-tooltip>77</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__78" class="hit">
+                          <td class="line" data-tooltip>78</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__79" class="hit">
+                          <td class="line" data-tooltip>79</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    intern.missing_messages(seneca, spec)</td>
+                          
+                        </tr>            <tr id="msg-test.js__80" class="hit">
+                          <td class="line" data-tooltip>80</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__81" class="hit">
+                          <td class="line" data-tooltip>81</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">    Object.keys(spec.delegates).forEach((dk) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__82" class="hit">
+                          <td class="line" data-tooltip>82</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      spec.delegates[dk] &#x3D; seneca.delegate.apply(seneca, spec.delegates[dk])</td>
+                          
+                        </tr>            <tr id="msg-test.js__83" class="hit">
+                          <td class="line" data-tooltip>83</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__84" class="hit">
+                          <td class="line" data-tooltip>84</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__85" class="hit">
+                          <td class="line" data-tooltip>85</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">    await intern.run(seneca, spec)</td>
+                          
+                        </tr>            <tr id="msg-test.js__86" class="hit">
+                          <td class="line" data-tooltip>86</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="msg-test.js__87" class="hit">
+                          <td class="line" data-tooltip>87</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="msg-test.js__88" class="hit">
+                          <td class="line" data-tooltip>88</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__89" class="hit">
+                          <td class="line" data-tooltip>89</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const intern &#x3D; (module.exports.intern &#x3D; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__90" class="hit">
+                          <td class="line" data-tooltip>90</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  run: async function (seneca, spec) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__91" class="hit">
+                          <td class="line" data-tooltip>91</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    var callmap &#x3D; spec.context</td>
+                          
+                        </tr>            <tr id="msg-test.js__92" class="hit">
+                          <td class="line" data-tooltip>92</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__93" class="hit">
+                          <td class="line" data-tooltip>93</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">    return new Promise((resolve, reject) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__94" class="hit">
+                          <td class="line" data-tooltip>94</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      next_call(0, function (err) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__95" class="hit">
+                          <td class="line" data-tooltip>95</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        if (err) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__96" class="hit">
+                          <td class="line" data-tooltip>96</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">          return reject(err)</td>
+                          
+                        </tr>            <tr id="msg-test.js__97" class="hit">
+                          <td class="line" data-tooltip>97</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__98" class="hit">
+                          <td class="line" data-tooltip>98</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>5</td>
+                          <td class="source">          return resolve()</td>
+                          
+                        </tr>            <tr id="msg-test.js__99" class="hit">
+                          <td class="line" data-tooltip>99</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__100" class="hit">
+                          <td class="line" data-tooltip>100</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      })</td>
+                          
+                        </tr>            <tr id="msg-test.js__101" class="hit">
+                          <td class="line" data-tooltip>101</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__102" class="hit">
+                          <td class="line" data-tooltip>102</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__103" class="hit">
+                          <td class="line" data-tooltip>103</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    function next_call(call_index, done) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__104" class="hit">
+                          <td class="line" data-tooltip>104</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>22</td>
+                          <td class="source">      try {</td>
+                          
+                        </tr>            <tr id="msg-test.js__105" class="hit">
+                          <td class="line" data-tooltip>105</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>22</td>
+                          <td class="source">        if (spec.calls.length &lt;&#x3D; call_index) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__106" class="hit">
+                          <td class="line" data-tooltip>106</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>5</td>
+                          <td class="source">          return done()</td>
+                          
+                        </tr>            <tr id="msg-test.js__107" class="hit">
+                          <td class="line" data-tooltip>107</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__108" class="hit">
+                          <td class="line" data-tooltip>108</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__109" class="hit">
+                          <td class="line" data-tooltip>109</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        var call &#x3D; spec.calls[call_index]</td>
+                          
+                        </tr>            <tr id="msg-test.js__110" class="hit">
+                          <td class="line" data-tooltip>110</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__111" class="chunks">
+                          <td class="line" data-tooltip>111</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        if (</div><div class="miss false" data-tooltip>false &#x3D;&#x3D;&#x3D; call.run</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__112" class="miss">
+                          <td class="line" data-tooltip>112</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>          return setImmediate(next_call.bind(null, call_index + 1, done))</td>
+                          
+                        </tr>            <tr id="msg-test.js__113" class="hit">
+                          <td class="line" data-tooltip>113</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__114" class="hit">
+                          <td class="line" data-tooltip>114</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__115" class="hit">
+                          <td class="line" data-tooltip>115</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        var params &#x3D; {}</td>
+                          
+                        </tr>            <tr id="msg-test.js__116" class="hit">
+                          <td class="line" data-tooltip>116</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__117" class="hit">
+                          <td class="line" data-tooltip>117</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        if (&#x27;function&#x27; &#x3D;&#x3D;&#x3D; typeof call.params) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__118" class="hit">
+                          <td class="line" data-tooltip>118</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">          params &#x3D; call.params(call, callmap, spec, seneca)</td>
+                          
+                        </tr>            <tr id="msg-test.js__119" class="hit">
+                          <td class="line" data-tooltip>119</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__120" class="hit">
+                          <td class="line" data-tooltip>120</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          params &#x3D; Inks(call.params, callmap)</td>
+                          
+                        </tr>            <tr id="msg-test.js__121" class="hit">
+                          <td class="line" data-tooltip>121</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__122" class="hit">
+                          <td class="line" data-tooltip>122</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__123" class="chunks">
+                          <td class="line" data-tooltip>123</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        var print &#x3D; </div><div class="miss false" data-tooltip>spec.print</div><div> || call.print</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__124" class="hit">
+                          <td class="line" data-tooltip>124</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__125" class="chunks">
+                          <td class="line" data-tooltip>125</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        if (</div><div class="miss false" data-tooltip>print</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__126" class="miss">
+                          <td class="line" data-tooltip>126</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>          console.log(&#x27;\n\nCALL   : &#x27;, call.pattern, params)</td>
+                          
+                        </tr>            <tr id="msg-test.js__127" class="hit">
+                          <td class="line" data-tooltip>127</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__128" class="hit">
+                          <td class="line" data-tooltip>128</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__129" class="chunks">
+                          <td class="line" data-tooltip>129</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        if (</div><div class="miss false" data-tooltip>call.print_context</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__130" class="miss">
+                          <td class="line" data-tooltip>130</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>          console.dir(callmap, { depth: 3, colors: true })</td>
+                          
+                        </tr>            <tr id="msg-test.js__131" class="hit">
+                          <td class="line" data-tooltip>131</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__132" class="hit">
+                          <td class="line" data-tooltip>132</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__133" class="hit">
+                          <td class="line" data-tooltip>133</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        var msg &#x3D; Object.assign(</td>
+                          
+                        </tr>            <tr id="msg-test.js__134" class="hit">
+                          <td class="line" data-tooltip>134</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          {},</td>
+                          
+                        </tr>            <tr id="msg-test.js__135" class="hit">
+                          <td class="line" data-tooltip>135</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          params,</td>
+                          
+                        </tr>            <tr id="msg-test.js__136" class="chunks">
+                          <td class="line" data-tooltip>136</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>          </div><div class="miss true" data-tooltip>spec.pattern</div><div> ? Jsonic(spec.pattern) : </div><div class="miss never" data-tooltip>{}</div><div>,</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__137" class="hit">
+                          <td class="line" data-tooltip>137</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          Jsonic(call.pattern)</td>
+                          
+                        </tr>            <tr id="msg-test.js__138" class="hit">
+                          <td class="line" data-tooltip>138</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        )</td>
+                          
+                        </tr>            <tr id="msg-test.js__139" class="hit">
+                          <td class="line" data-tooltip>139</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        var msgstr &#x3D; Jsonic.stringify(msg)</td>
+                          
+                        </tr>            <tr id="msg-test.js__140" class="hit">
+                          <td class="line" data-tooltip>140</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        call.msgstr &#x3D; msgstr</td>
+                          
+                        </tr>            <tr id="msg-test.js__141" class="hit">
+                          <td class="line" data-tooltip>141</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__142" class="hit">
+                          <td class="line" data-tooltip>142</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">        var instance &#x3D; intern.handle_delegate(seneca, call, callmap, spec)</td>
+                          
+                        </tr>            <tr id="msg-test.js__143" class="hit">
+                          <td class="line" data-tooltip>143</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__144" class="hit">
+                          <td class="line" data-tooltip>144</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">        instance.act(msg, function (err, out, meta) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__145" class="chunks">
+                          <td class="line" data-tooltip>145</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>          if (</div><div class="miss false" data-tooltip>print</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__146" class="miss">
+                          <td class="line" data-tooltip>146</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>            console.log(&#x27;ERROR  : &#x27;, err)</td>
+                          
+                        </tr>            <tr id="msg-test.js__147" class="miss">
+                          <td class="line" data-tooltip>147</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>            console.log(</td>
+                          
+                        </tr>            <tr id="msg-test.js__148" class="hit">
+                          <td class="line" data-tooltip>148</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              &#x27;RESULT : &#x27;,</td>
+                          
+                        </tr>            <tr id="msg-test.js__149" class="hit">
+                          <td class="line" data-tooltip>149</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              Util.inspect(out, { depth: null, colors: true })</td>
+                          
+                        </tr>            <tr id="msg-test.js__150" class="hit">
+                          <td class="line" data-tooltip>150</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            )</td>
+                          
+                        </tr>            <tr id="msg-test.js__151" class="hit">
+                          <td class="line" data-tooltip>151</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          }</td>
+                          
+                        </tr>            <tr id="msg-test.js__152" class="hit">
+                          <td class="line" data-tooltip>152</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__153" class="hit">
+                          <td class="line" data-tooltip>153</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          if (null &#x3D;&#x3D; call.err) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__154" class="chunks">
+                          <td class="line" data-tooltip>154</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>            if (</div><div class="miss false" data-tooltip>null !&#x3D; err</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__155" class="miss">
+                          <td class="line" data-tooltip>155</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__156" class="hit">
+                          <td class="line" data-tooltip>156</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                new Error(&#x27;Error not expected for: &#x27; + msgstr + &#x27;, err: &#x27; + err)</td>
+                          
+                        </tr>            <tr id="msg-test.js__157" class="hit">
+                          <td class="line" data-tooltip>157</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              )</td>
+                          
+                        </tr>            <tr id="msg-test.js__158" class="hit">
+                          <td class="line" data-tooltip>158</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__159" class="hit">
+                          <td class="line" data-tooltip>159</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__160" class="chunks">
+                          <td class="line" data-tooltip>160</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>            if (</div><div class="miss false" data-tooltip>null &#x3D;&#x3D; err</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__161" class="miss">
+                          <td class="line" data-tooltip>161</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__162" class="hit">
+                          <td class="line" data-tooltip>162</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                new Error(&#x27;Error expected for: &#x27; + msgstr + &#x27;, was null&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__163" class="hit">
+                          <td class="line" data-tooltip>163</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              )</td>
+                          
+                        </tr>            <tr id="msg-test.js__164" class="hit">
+                          <td class="line" data-tooltip>164</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__165" class="hit">
+                          <td class="line" data-tooltip>165</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__166" class="hit">
+                          <td class="line" data-tooltip>166</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">            var result &#x3D; Optioner(call.err, { must_match_literals: true })(err)</td>
+                          
+                        </tr>            <tr id="msg-test.js__167" class="chunks">
+                          <td class="line" data-tooltip>167</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>            if (</div><div class="miss false" data-tooltip>result.error</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__168" class="miss">
+                          <td class="line" data-tooltip>168</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(result.error)</td>
+                          
+                        </tr>            <tr id="msg-test.js__169" class="hit">
+                          <td class="line" data-tooltip>169</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__170" class="hit">
+                          <td class="line" data-tooltip>170</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          }</td>
+                          
+                        </tr>            <tr id="msg-test.js__171" class="hit">
+                          <td class="line" data-tooltip>171</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__172" class="chunks">
+                          <td class="line" data-tooltip>172</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>          if (</div><div class="miss false" data-tooltip>null &#x3D;&#x3D;&#x3D; call.out</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__173" class="miss">
+                          <td class="line" data-tooltip>173</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>            if (null !&#x3D; out) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__174" class="miss">
+                          <td class="line" data-tooltip>174</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__175" class="hit">
+                          <td class="line" data-tooltip>175</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                new Error(</td>
+                          
+                        </tr>            <tr id="msg-test.js__176" class="hit">
+                          <td class="line" data-tooltip>176</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                  &#x27;Output not expected for: &#x27; + msgstr + &#x27;, out: &#x27; + out</td>
+                          
+                        </tr>            <tr id="msg-test.js__177" class="hit">
+                          <td class="line" data-tooltip>177</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                )</td>
+                          
+                        </tr>            <tr id="msg-test.js__178" class="hit">
+                          <td class="line" data-tooltip>178</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              )</td>
+                          
+                        </tr>            <tr id="msg-test.js__179" class="hit">
+                          <td class="line" data-tooltip>179</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__180" class="hit">
+                          <td class="line" data-tooltip>180</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          } else if (null !&#x3D; call.out) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__181" class="chunks">
+                          <td class="line" data-tooltip>181</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>            if (</div><div class="miss false" data-tooltip>null &#x3D;&#x3D; out</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__182" class="miss">
+                          <td class="line" data-tooltip>182</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__183" class="hit">
+                          <td class="line" data-tooltip>183</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                new Error(&#x27;Output expected for: &#x27; + msgstr + &#x27;, was null&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__184" class="hit">
+                          <td class="line" data-tooltip>184</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              )</td>
+                          
+                        </tr>            <tr id="msg-test.js__185" class="hit">
+                          <td class="line" data-tooltip>185</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__186" class="hit">
+                          <td class="line" data-tooltip>186</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>15</td>
+                          <td class="source">              var current_call_out &#x3D; Inks(call.out, callmap, {</td>
+                          
+                        </tr>            <tr id="msg-test.js__187" class="hit">
+                          <td class="line" data-tooltip>187</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                exclude: (k, v) &#x3D;&gt; Joi.isSchema(v, { legacy: true }),</td>
+                          
+                        </tr>            <tr id="msg-test.js__188" class="hit">
+                          <td class="line" data-tooltip>188</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              })</td>
+                          
+                        </tr>            <tr id="msg-test.js__189" class="hit">
+                          <td class="line" data-tooltip>189</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__190" class="hit">
+                          <td class="line" data-tooltip>190</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>15</td>
+                          <td class="source">              result &#x3D; Optioner(current_call_out, {</td>
+                          
+                        </tr>            <tr id="msg-test.js__191" class="hit">
+                          <td class="line" data-tooltip>191</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                must_match_literals: true,</td>
+                          
+                        </tr>            <tr id="msg-test.js__192" class="hit">
+                          <td class="line" data-tooltip>192</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              })(out)</td>
+                          
+                        </tr>            <tr id="msg-test.js__193" class="chunks">
+                          <td class="line" data-tooltip>193</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>              if (</div><div class="miss false" data-tooltip>result.error</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__194" class="miss">
+                          <td class="line" data-tooltip>194</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>                return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__195" class="hit">
+                          <td class="line" data-tooltip>195</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                  new Error(</td>
+                          
+                        </tr>            <tr id="msg-test.js__196" class="hit">
+                          <td class="line" data-tooltip>196</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                    &#x27;Output for: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__197" class="hit">
+                          <td class="line" data-tooltip>197</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                      msgstr +</td>
+                          
+                        </tr>            <tr id="msg-test.js__198" class="chunks">
+                          <td class="line" data-tooltip>198</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>                      (</div><div class="miss never" data-tooltip>call.line</div><div> ? </div><div class="miss never" data-tooltip>&#x27; (&#x27; + call.line + &#x27;)&#x27;</div><div> : </div><div class="miss never" data-tooltip>&#x27;&#x27;</div><div>) +</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__199" class="hit">
+                          <td class="line" data-tooltip>199</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                      &#x27; was invalid: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__200" class="hit">
+                          <td class="line" data-tooltip>200</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                      result.error.message</td>
+                          
+                        </tr>            <tr id="msg-test.js__201" class="hit">
+                          <td class="line" data-tooltip>201</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                  )</td>
+                          
+                        </tr>            <tr id="msg-test.js__202" class="hit">
+                          <td class="line" data-tooltip>202</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                )</td>
+                          
+                        </tr>            <tr id="msg-test.js__203" class="hit">
+                          <td class="line" data-tooltip>203</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              }</td>
+                          
+                        </tr>            <tr id="msg-test.js__204" class="hit">
+                          <td class="line" data-tooltip>204</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__205" class="hit">
+                          <td class="line" data-tooltip>205</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          }</td>
+                          
+                        </tr>            <tr id="msg-test.js__206" class="hit">
+                          <td class="line" data-tooltip>206</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__207" class="hit">
+                          <td class="line" data-tooltip>207</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          if (null !&#x3D; call.verify) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__208" class="hit">
+                          <td class="line" data-tooltip>208</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">            call.result &#x3D; { msg, err, out, meta }</td>
+                          
+                        </tr>            <tr id="msg-test.js__209" class="hit">
+                          <td class="line" data-tooltip>209</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__210" class="hit">
+                          <td class="line" data-tooltip>210</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            // TODO: handle Joi validation result</td>
+                          
+                        </tr>            <tr id="msg-test.js__211" class="hit">
+                          <td class="line" data-tooltip>211</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">            result &#x3D; call.verify(call, callmap, spec, instance)</td>
+                          
+                        </tr>            <tr id="msg-test.js__212" class="chunks">
+                          <td class="line" data-tooltip>212</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>            if (</div><div class="miss false" data-tooltip>null !&#x3D; result</div><div> &amp;&amp; </div><div class="miss never" data-tooltip>true !&#x3D;&#x3D; result</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__213" class="miss">
+                          <td class="line" data-tooltip>213</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>              return done(</td>
+                          
+                        </tr>            <tr id="msg-test.js__214" class="hit">
+                          <td class="line" data-tooltip>214</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                new Error(</td>
+                          
+                        </tr>            <tr id="msg-test.js__215" class="hit">
+                          <td class="line" data-tooltip>215</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                  &#x27;Verify of: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__216" class="hit">
+                          <td class="line" data-tooltip>216</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                    msgstr +</td>
+                          
+                        </tr>            <tr id="msg-test.js__217" class="hit">
+                          <td class="line" data-tooltip>217</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                    &#x27; failed: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__218" class="chunks">
+                          <td class="line" data-tooltip>218</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>                    (</div><div class="miss never" data-tooltip>result.message</div><div> || </div><div class="miss never" data-tooltip>result</div><div>)</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__219" class="hit">
+                          <td class="line" data-tooltip>219</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">                )</td>
+                          
+                        </tr>            <tr id="msg-test.js__220" class="hit">
+                          <td class="line" data-tooltip>220</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              )</td>
+                          
+                        </tr>            <tr id="msg-test.js__221" class="hit">
+                          <td class="line" data-tooltip>221</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__222" class="hit">
+                          <td class="line" data-tooltip>222</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          }</td>
+                          
+                        </tr>            <tr id="msg-test.js__223" class="hit">
+                          <td class="line" data-tooltip>223</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__224" class="hit">
+                          <td class="line" data-tooltip>224</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          if (call.name) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__225" class="hit">
+                          <td class="line" data-tooltip>225</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">            callmap[call.name] &#x3D; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__226" class="hit">
+                          <td class="line" data-tooltip>226</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              top_pattern: spec.pattern,</td>
+                          
+                        </tr>            <tr id="msg-test.js__227" class="hit">
+                          <td class="line" data-tooltip>227</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              pattern: call.pattern,</td>
+                          
+                        </tr>            <tr id="msg-test.js__228" class="hit">
+                          <td class="line" data-tooltip>228</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              params: params,</td>
+                          
+                        </tr>            <tr id="msg-test.js__229" class="hit">
+                          <td class="line" data-tooltip>229</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              msg: msg,</td>
+                          
+                        </tr>            <tr id="msg-test.js__230" class="hit">
+                          <td class="line" data-tooltip>230</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              err: err,</td>
+                          
+                        </tr>            <tr id="msg-test.js__231" class="hit">
+                          <td class="line" data-tooltip>231</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              out: out,</td>
+                          
+                        </tr>            <tr id="msg-test.js__232" class="hit">
+                          <td class="line" data-tooltip>232</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              meta: meta,</td>
+                          
+                        </tr>            <tr id="msg-test.js__233" class="hit">
+                          <td class="line" data-tooltip>233</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            }</td>
+                          
+                        </tr>            <tr id="msg-test.js__234" class="hit">
+                          <td class="line" data-tooltip>234</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          }</td>
+                          
+                        </tr>            <tr id="msg-test.js__235" class="hit">
+                          <td class="line" data-tooltip>235</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__236" class="hit">
+                          <td class="line" data-tooltip>236</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">          setImmediate(next_call.bind(null, call_index + 1, done))</td>
+                          
+                        </tr>            <tr id="msg-test.js__237" class="hit">
+                          <td class="line" data-tooltip>237</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        })</td>
+                          
+                        </tr>            <tr id="msg-test.js__238" class="hit">
+                          <td class="line" data-tooltip>238</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      } catch (e) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__239" class="hit">
+                          <td class="line" data-tooltip>239</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        return done(e)</td>
+                          
+                        </tr>            <tr id="msg-test.js__240" class="hit">
+                          <td class="line" data-tooltip>240</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="msg-test.js__241" class="hit">
+                          <td class="line" data-tooltip>241</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="msg-test.js__242" class="hit">
+                          <td class="line" data-tooltip>242</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  },</td>
+                          
+                        </tr>            <tr id="msg-test.js__243" class="hit">
+                          <td class="line" data-tooltip>243</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__244" class="hit">
+                          <td class="line" data-tooltip>244</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  // TODO: support a default delegate</td>
+                          
+                        </tr>            <tr id="msg-test.js__245" class="hit">
+                          <td class="line" data-tooltip>245</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  handle_delegate: function (instance, call, callmap, spec) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__246" class="hit">
+                          <td class="line" data-tooltip>246</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    if (call.delegate) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__247" class="hit">
+                          <td class="line" data-tooltip>247</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>8</td>
+                          <td class="source">      if (&#x27;string&#x27; &#x3D;&#x3D;&#x3D; typeof call.delegate) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__248" class="hit">
+                          <td class="line" data-tooltip>248</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        instance &#x3D; spec.delegates[call.delegate]</td>
+                          
+                        </tr>            <tr id="msg-test.js__249" class="hit">
+                          <td class="line" data-tooltip>249</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__250" class="hit">
+                          <td class="line" data-tooltip>250</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>6</td>
+                          <td class="source">        if (null &#x3D;&#x3D; instance) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__251" class="hit">
+                          <td class="line" data-tooltip>251</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">          throw new Error(</td>
+                          
+                        </tr>            <tr id="msg-test.js__252" class="hit">
+                          <td class="line" data-tooltip>252</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            &#x27;Delegate not defined: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__253" class="hit">
+                          <td class="line" data-tooltip>253</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              call.delegate +</td>
+                          
+                        </tr>            <tr id="msg-test.js__254" class="hit">
+                          <td class="line" data-tooltip>254</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              &#x27;. Message was: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__255" class="hit">
+                          <td class="line" data-tooltip>255</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">              call.msgstr</td>
+                          
+                        </tr>            <tr id="msg-test.js__256" class="hit">
+                          <td class="line" data-tooltip>256</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          )</td>
+                          
+                        </tr>            <tr id="msg-test.js__257" class="hit">
+                          <td class="line" data-tooltip>257</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="msg-test.js__258" class="hit">
+                          <td class="line" data-tooltip>258</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">      } else if (Array.isArray(call.delegate)) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__259" class="hit">
+                          <td class="line" data-tooltip>259</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        return instance.delegate.apply(instance, call.delegate)</td>
+                          
+                        </tr>            <tr id="msg-test.js__260" class="chunks">
+                          <td class="line" data-tooltip>260</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>      } else if (</div><div class="miss true" data-tooltip>&#x27;function&#x27; &#x3D;&#x3D;&#x3D; typeof call.delegate</div><div>) {</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__261" class="hit">
+                          <td class="line" data-tooltip>261</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        return call.delegate.call(instance, call, callmap, spec)</td>
+                          
+                        </tr>            <tr id="msg-test.js__262" class="hit">
+                          <td class="line" data-tooltip>262</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__263" class="miss">
+                          <td class="line" data-tooltip>263</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>        throw new Error(</td>
+                          
+                        </tr>            <tr id="msg-test.js__264" class="hit">
+                          <td class="line" data-tooltip>264</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          &#x27;Unknown delegate reference: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__265" class="hit">
+                          <td class="line" data-tooltip>265</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            Util.inspect(call.delegate) +</td>
+                          
+                        </tr>            <tr id="msg-test.js__266" class="hit">
+                          <td class="line" data-tooltip>266</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            &#x27;. Message was: &#x27; +</td>
+                          
+                        </tr>            <tr id="msg-test.js__267" class="hit">
+                          <td class="line" data-tooltip>267</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">            call.msgstr</td>
+                          
+                        </tr>            <tr id="msg-test.js__268" class="hit">
+                          <td class="line" data-tooltip>268</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        )</td>
+                          
+                        </tr>            <tr id="msg-test.js__269" class="hit">
+                          <td class="line" data-tooltip>269</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="msg-test.js__270" class="hit">
+                          <td class="line" data-tooltip>270</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="msg-test.js__271" class="hit">
+                          <td class="line" data-tooltip>271</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__272" class="hit">
+                          <td class="line" data-tooltip>272</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>14</td>
+                          <td class="source">    return instance</td>
+                          
+                        </tr>            <tr id="msg-test.js__273" class="hit">
+                          <td class="line" data-tooltip>273</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  },</td>
+                          
+                        </tr>            <tr id="msg-test.js__274" class="hit">
+                          <td class="line" data-tooltip>274</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__275" class="hit">
+                          <td class="line" data-tooltip>275</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  missing_messages: function (seneca, spec) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__276" class="hit">
+                          <td class="line" data-tooltip>276</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    var foundmsgs &#x3D; seneca</td>
+                          
+                        </tr>            <tr id="msg-test.js__277" class="hit">
+                          <td class="line" data-tooltip>277</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      .list(spec.pattern)</td>
+                          
+                        </tr>            <tr id="msg-test.js__278" class="hit">
+                          <td class="line" data-tooltip>278</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      .map((msg) &#x3D;&gt; seneca.util.pattern(msg))</td>
+                          
+                        </tr>            <tr id="msg-test.js__279" class="hit">
+                          <td class="line" data-tooltip>279</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__280" class="hit">
+                          <td class="line" data-tooltip>280</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    const specmsgs &#x3D; []</td>
+                          
+                        </tr>            <tr id="msg-test.js__281" class="hit">
+                          <td class="line" data-tooltip>281</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__282" class="hit">
+                          <td class="line" data-tooltip>282</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    spec.calls.forEach((call) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__283" class="hit">
+                          <td class="line" data-tooltip>283</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      var specmsg_obj &#x3D; Jsonic(spec.pattern + &#x27;,&#x27; + call.pattern)</td>
+                          
+                        </tr>            <tr id="msg-test.js__284" class="hit">
+                          <td class="line" data-tooltip>284</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">      specmsgs.push(specmsg_obj)</td>
+                          
+                        </tr>            <tr id="msg-test.js__285" class="hit">
+                          <td class="line" data-tooltip>285</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__286" class="hit">
+                          <td class="line" data-tooltip>286</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__287" class="hit">
+                          <td class="line" data-tooltip>287</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    // remove msgs once found</td>
+                          
+                        </tr>            <tr id="msg-test.js__288" class="hit">
+                          <td class="line" data-tooltip>288</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    specmsgs.forEach((msg) &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="msg-test.js__289" class="hit">
+                          <td class="line" data-tooltip>289</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      var found &#x3D; seneca.find(msg)</td>
+                          
+                        </tr>            <tr id="msg-test.js__290" class="hit">
+                          <td class="line" data-tooltip>290</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>17</td>
+                          <td class="source">      if (found) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__291" class="hit">
+                          <td class="line" data-tooltip>291</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>16</td>
+                          <td class="source">        foundmsgs &#x3D; foundmsgs.filter((msg) &#x3D;&gt; msg !&#x3D; found.pattern)</td>
+                          
+                        </tr>            <tr id="msg-test.js__292" class="hit">
+                          <td class="line" data-tooltip>292</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="msg-test.js__293" class="hit">
+                          <td class="line" data-tooltip>293</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="msg-test.js__294" class="hit">
+                          <td class="line" data-tooltip>294</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__295" class="hit">
+                          <td class="line" data-tooltip>295</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    // there should be none left - all should be found</td>
+                          
+                        </tr>            <tr id="msg-test.js__296" class="hit">
+                          <td class="line" data-tooltip>296</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    if (0 &lt; foundmsgs.length &amp;&amp; !spec.allow.missing) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__297" class="hit">
+                          <td class="line" data-tooltip>297</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      throw new Error(&#x27;Test calls not defined for: &#x27; + foundmsgs.join(&#x27;; &#x27;))</td>
+                          
+                        </tr>            <tr id="msg-test.js__298" class="hit">
+                          <td class="line" data-tooltip>298</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          
+                        </tr>            <tr id="msg-test.js__299" class="hit">
+                          <td class="line" data-tooltip>299</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  },</td>
+                          
+                        </tr>            <tr id="msg-test.js__300" class="hit">
+                          <td class="line" data-tooltip>300</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">})</td>
+                          
+                        </tr>            <tr id="msg-test.js__301" class="hit">
+                          <td class="line" data-tooltip>301</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__302" class="hit">
+                          <td class="line" data-tooltip>302</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">// Get line number of test message in spec file.</td>
+                          
+                        </tr>            <tr id="msg-test.js__303" class="hit">
+                          <td class="line" data-tooltip>303</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">// Use as an extra value in msg: &#x60;+LN()&#x60;</td>
+                          
+                        </tr>            <tr id="msg-test.js__304" class="hit">
+                          <td class="line" data-tooltip>304</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">function LN(t) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__305" class="miss">
+                          <td class="line" data-tooltip>305</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>  var line &#x3D; new Error().stack</td>
+                          
+                        </tr>            <tr id="msg-test.js__306" class="hit">
+                          <td class="line" data-tooltip>306</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    .split(&#x27;\n&#x27;)[2]</td>
+                          
+                        </tr>            <tr id="msg-test.js__307" class="hit">
+                          <td class="line" data-tooltip>307</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    .match(/[\/\\]([^./\\]+)[^/\\]*\.js:(\d+):/)</td>
+                          
+                        </tr>            <tr id="msg-test.js__308" class="chunks">
+                          <td class="line" data-tooltip>308</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>    .filter((x, i) &#x3D;&gt; </div><div class="miss never" data-tooltip>i &#x3D;&#x3D; 1</div><div> || </div><div class="miss never" data-tooltip>i &#x3D;&#x3D; 2</div><div>)</div></td>
+                          
+                        </tr>            <tr id="msg-test.js__309" class="hit">
+                          <td class="line" data-tooltip>309</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    .join(&#x27;~&#x27;)</td>
+                          
+                        </tr>            <tr id="msg-test.js__310" class="hit">
+                          <td class="line" data-tooltip>310</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="msg-test.js__311" class="miss">
+                          <td class="line" data-tooltip>311</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>  if (null &#x3D;&#x3D; t) {</td>
+                          
+                        </tr>            <tr id="msg-test.js__312" class="miss">
+                          <td class="line" data-tooltip>312</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>    return &#x27;,LN:&#x27; + line</td>
+                          
+                        </tr>            <tr id="msg-test.js__313" class="hit">
+                          <td class="line" data-tooltip>313</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  } else {</td>
+                          
+                        </tr>            <tr id="msg-test.js__314" class="miss">
+                          <td class="line" data-tooltip>314</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>    t.line &#x3D; line</td>
+                          
+                        </tr>            <tr id="msg-test.js__315" class="miss">
+                          <td class="line" data-tooltip>315</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source" data-tooltip>    return t</td>
+                          
+                        </tr>            <tr id="msg-test.js__316" class="hit">
+                          <td class="line" data-tooltip>316</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="msg-test.js__317" class="hit">
+                          <td class="line" data-tooltip>317</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="msg-test.js__318" class="hit">
+                          <td class="line" data-tooltip>318</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    <div id="linting">
+        <h1>Linting Report</h1>
+            <div class="lint-stats">
+                <span class="lint-errors high">0</span>
+                <span class="lint-warnings high">0</span>
+            </div>
+            <div class="lint-files">
+            </div>
+    </div>  </body>
+</html>
