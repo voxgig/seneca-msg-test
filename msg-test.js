@@ -155,7 +155,6 @@ const intern = (module.exports.intern = {
             }
           }
 
-
           if (print) {
             console.log('ERROR  : ', err)
             console.log(

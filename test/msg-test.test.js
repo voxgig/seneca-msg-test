@@ -273,14 +273,13 @@ lab.test(
   )
 )
 
-
 lab.test(
   'self-reference',
   SenecaMsgTest(
     seneca_instance({ log: 'silent' }, function (seneca) {
       return seneca.use(function plugin0() {
         this.add('a:1', function (msg, reply) {
-          return reply({b:msg.b,c:msg.b})
+          return reply({ b: msg.b, c: msg.b })
         })
       })
     }),
@@ -298,9 +297,6 @@ lab.test(
     }
   )
 )
-
-
-
 
 function seneca_instance(options, setup) {
   setup = setup || ((x) => x)
