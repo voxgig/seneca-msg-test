@@ -142,6 +142,20 @@ const intern = (module.exports.intern = {
         var instance = intern.handle_delegate(seneca, call, callmap, spec)
 
         instance.act(msg, function (err, out, meta) {
+          // initial call meta data - allows self-refs in validation
+          if (call.name) {
+            callmap[call.name] = {
+              top_pattern: spec.pattern,
+              pattern: call.pattern,
+              params: params,
+              msg: msg,
+              err: err,
+              out: out,
+              meta: meta,
+            }
+          }
+
+
           if (print) {
             console.log('ERROR  : ', err)
             console.log(

@@ -273,6 +273,35 @@ lab.test(
   )
 )
 
+
+lab.test(
+  'self-reference',
+  SenecaMsgTest(
+    seneca_instance({ log: 'silent' }, function (seneca) {
+      return seneca.use(function plugin0() {
+        this.add('a:1', function (msg, reply) {
+          return reply({b:msg.b,c:msg.b})
+        })
+      })
+    }),
+    {
+      test: true,
+      allow: { missing: true },
+      calls: [
+        {
+          name: 'self0',
+          pattern: 'a:1',
+          params: { b: 'b0' },
+          out: { b: 'b0', c: '`self0:out.b`' },
+        },
+      ],
+    }
+  )
+)
+
+
+
+
 function seneca_instance(options, setup) {
   setup = setup || ((x) => x)
   return setup(Seneca(options).use('entity'))
