@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2020 voxgig and other contributors, MIT License */
+/* Copyright (c) 2018-2021 Voxgig and other contributors, MIT License */
 'use strict'
 
 // TODO: add line numbers to all fail msgs!
@@ -6,6 +6,7 @@
 const Util = require('util')
 const Assert = require('assert')
 
+const Seneca = require('seneca')
 const Jsonic = require('jsonic')
 const Inks = require('inks')
 const Optioner = require('optioner')
@@ -16,6 +17,7 @@ module.exports.Joi = Joi
 module.exports.LN = LN
 
 const optioner = Optioner({
+  init: Joi.function(),
   test: Joi.boolean().default(true),
   log: Joi.boolean().default(false),
   data: Joi.object().unknown().default({}),
@@ -28,7 +30,7 @@ const optioner = Optioner({
   allow: Joi.object({
     missing: Joi.boolean().default(false),
   }).default(),
-  calls: Joi.array().items(
+  calls: Joi.alternatives().try(Joi.function(),Joi.array().items(
     Joi.object({
       name: Joi.string().min(1),
       print: Joi.boolean().default(false),
@@ -42,14 +44,30 @@ const optioner = Optioner({
       delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
       verify: Joi.func(),
       line: Joi.string(),
-    })
+    }))
   ),
 })
 
 function msg_test(seneca, spec) {
+
+  // Seneca instance is optional
+  if(seneca && !seneca.seneca) {
+    spec = seneca
+    seneca = null
+  }
+
   spec = optioner.check(spec)
 
   Assert('object' === typeof spec.delegates)
+
+
+  if(null == seneca) {
+    seneca = Seneca().test()
+  }
+
+  if(spec.init) {
+    seneca = spec.init(seneca)
+  }
 
   // top level `pattern` replaces `fix`; `fix` deprecated as does not override
   spec.pattern = '' === spec.pattern ? spec.fix : spec.pattern
@@ -76,20 +94,22 @@ function msg_test(seneca, spec) {
       default$: {},
     })
 
-    intern.missing_messages(seneca, spec)
+    let calls = Array.isArray(spec.calls) ? spec.calls : spec.calls(LN)
+    
+    intern.missing_messages(seneca, spec, calls)
 
     Object.keys(spec.delegates).forEach((dk) => {
       spec.delegates[dk] = seneca.delegate.apply(seneca, spec.delegates[dk])
     })
 
-    await intern.run(seneca, spec)
+    await intern.run(seneca, spec, calls)
   }
 }
 
 const intern = (module.exports.intern = {
-  run: async function (seneca, spec) {
-    var callmap = spec.context
-
+  run: async function (seneca, spec, calls) {
+    let callmap = spec.context
+    
     return new Promise((resolve, reject) => {
       next_call(0, function (err) {
         if (err) {
@@ -102,11 +122,11 @@ const intern = (module.exports.intern = {
 
     function next_call(call_index, done) {
       try {
-        if (spec.calls.length <= call_index) {
+        if (calls.length <= call_index) {
           return done()
         }
 
-        var call = spec.calls[call_index]
+        var call = calls[call_index]
 
         if (false === call.run) {
           return setImmediate(next_call.bind(null, call_index + 1, done))
@@ -285,14 +305,14 @@ const intern = (module.exports.intern = {
     return instance
   },
 
-  missing_messages: function (seneca, spec) {
+  missing_messages: function (seneca, spec, calls) {
     var foundmsgs = seneca
       .list(spec.pattern)
       .map((msg) => seneca.util.pattern(msg))
 
     const specmsgs = []
 
-    spec.calls.forEach((call) => {
+    calls.forEach((call) => {
       var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
       specmsgs.push(specmsg_obj)
     })
