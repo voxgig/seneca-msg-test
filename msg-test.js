@@ -30,28 +30,30 @@ const optioner = Optioner({
   allow: Joi.object({
     missing: Joi.boolean().default(false),
   }).default(),
-  calls: Joi.alternatives().try(Joi.function(),Joi.array().items(
-    Joi.object({
-      name: Joi.string().min(1),
-      print: Joi.boolean().default(false),
-      print_context: Joi.boolean().default(false),
-      pattern: Joi.string().min(3),
-      params: Joi.alternatives()
-        .try(Joi.object().unknown(), Joi.func())
-        .default({}),
-      out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),
-      err: Joi.object().unknown(),
-      delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
-      verify: Joi.func(),
-      line: Joi.string(),
-    }))
+  calls: Joi.alternatives().try(
+    Joi.function(),
+    Joi.array().items(
+      Joi.object({
+        name: Joi.string().min(1),
+        print: Joi.boolean().default(false),
+        print_context: Joi.boolean().default(false),
+        pattern: Joi.string().min(3),
+        params: Joi.alternatives()
+          .try(Joi.object().unknown(), Joi.func())
+          .default({}),
+        out: Joi.alternatives().try(Joi.object().unknown(), Joi.array()),
+        err: Joi.object().unknown(),
+        delegate: Joi.alternatives(Joi.string(), Joi.array(), Joi.func()),
+        verify: Joi.func(),
+        line: Joi.string(),
+      })
+    )
   ),
 })
 
 function msg_test(seneca, spec) {
-
   // Seneca instance is optional
-  if(seneca && !seneca.seneca) {
+  if (seneca && !seneca.seneca) {
     spec = seneca
     seneca = null
   }
@@ -60,12 +62,11 @@ function msg_test(seneca, spec) {
 
   Assert('object' === typeof spec.delegates)
 
-
-  if(null == seneca) {
+  if (null == seneca) {
     seneca = Seneca().test()
   }
 
-  if(spec.init) {
+  if (spec.init) {
     seneca = spec.init(seneca)
   }
 
@@ -95,7 +96,7 @@ function msg_test(seneca, spec) {
     })
 
     let calls = Array.isArray(spec.calls) ? spec.calls : spec.calls(LN)
-    
+
     intern.missing_messages(seneca, spec, calls)
 
     Object.keys(spec.delegates).forEach((dk) => {
@@ -109,7 +110,7 @@ function msg_test(seneca, spec) {
 const intern = (module.exports.intern = {
   run: async function (seneca, spec, calls) {
     let callmap = spec.context
-    
+
     return new Promise((resolve, reject) => {
       next_call(0, function (err) {
         if (err) {

@@ -61,11 +61,9 @@ lab.test(
   )
 )
 
-
-lab.test('declarative', async() => {
+lab.test('declarative', async () => {
   await SenecaMsgTest(require('./declarative'))()
 })
-
 
 lab.test('missing-calls', async () => {
   var si = seneca_instance({ log: 'silent' }, function (seneca) {
