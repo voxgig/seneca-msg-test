@@ -161,6 +161,8 @@ const intern = (module.exports.intern = {
         var msgstr = Jsonic.stringify(msg)
         call.msgstr = msgstr
 
+        let errname = (null==call.name?'':call.name+'~')+msgstr
+        
         var instance = intern.handle_delegate(seneca, call, callmap, spec)
 
         instance.act(msg, function (err, out, meta) {
@@ -188,13 +190,13 @@ const intern = (module.exports.intern = {
           if (null == call.err) {
             if (null != err) {
               return done(
-                new Error('Error not expected for: ' + msgstr + ', err: ' + err)
+                new Error('Error not expected for: ' + errname + ', err: ' + err)
               )
             }
           } else {
             if (null == err) {
               return done(
-                new Error('Error expected for: ' + msgstr + ', was null')
+                new Error('Error expected for: ' + errname + ', was null')
               )
             }
 
@@ -208,14 +210,14 @@ const intern = (module.exports.intern = {
             if (null != out) {
               return done(
                 new Error(
-                  'Output not expected for: ' + msgstr + ', out: ' + out
+                  'Output not expected for: ' + errname + ', out: ' + out
                 )
               )
             }
           } else if (null != call.out) {
             if (null == out) {
               return done(
-                new Error('Output expected for: ' + msgstr + ', was null')
+                new Error('Output expected for: ' + errname + ', was null')
               )
             } else {
               var current_call_out = Inks(call.out, callmap, {
@@ -229,7 +231,7 @@ const intern = (module.exports.intern = {
                 return done(
                   new Error(
                     'Output for: ' +
-                      msgstr +
+                      errname +
                       (call.line ? ' (' + call.line + ')' : '') +
                       ' was invalid: ' +
                       result.error.message
@@ -248,7 +250,7 @@ const intern = (module.exports.intern = {
               return done(
                 new Error(
                   'Verify of: ' +
-                    msgstr +
+                    errname +
                     ' failed: ' +
                     (result.message || result)
                 )
