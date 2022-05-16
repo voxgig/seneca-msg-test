@@ -161,8 +161,8 @@ const intern = (module.exports.intern = {
         var msgstr = Jsonic.stringify(msg)
         call.msgstr = msgstr
 
-        let errname = (null==call.name?'':call.name+'~')+msgstr
-        
+        let errname = (null == call.name ? '' : call.name + '~') + msgstr
+
         var instance = intern.handle_delegate(seneca, call, callmap, spec)
 
         instance.act(msg, function (err, out, meta) {
@@ -190,7 +190,9 @@ const intern = (module.exports.intern = {
           if (null == call.err) {
             if (null != err) {
               return done(
-                new Error('Error not expected for: ' + errname + ', err: ' + err)
+                new Error(
+                  'Error not expected for: ' + errname + ', err: ' + err
+                )
               )
             }
           } else {
