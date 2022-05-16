@@ -1,11 +1,11 @@
 {
   "name": "seneca-msg-test",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Structured testing of seneca plugin messages.",
   "main": "msg-test.js",
   "scripts": {
     "build": "echo no-build",
-    "test": "lab -v -P test -L -t 80 -r console -o stdout -r html -o test/coverage.html -r lcov -o test/lcov.info",
+    "test": "lab -v -P test -L -t 80 -I AggregateError,atob,btoa,AbortController,AbortSignal,EventTarget,Event,MessageChannel,MessagePort,MessageEvent,performance -r console -o stdout -r html -o test/coverage.html -r lcov -o test/lcov.info",
     "test-some": "lab -v -P test -g",
     "prettier": "prettier --write --no-semi --single-quote *.js test/*.js",
     "clean": "rm -rf node_modules yarn.lock package-lock.json",
