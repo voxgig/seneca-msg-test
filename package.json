@@ -35,12 +35,12 @@
     "optioner": "^5.0.1"
   },
   "devDependencies": {
-    "@hapi/code": "^8.0.3",
-    "@hapi/lab": "^24.2.1",
-    "coveralls": "^3.1.0",
-    "prettier": "^2.3.1",
-    "seneca": "^3.23.3",
-    "seneca-entity": "^14.0.0",
-    "seneca-promisify": "^2.0.0"
+    "@hapi/code": "8",
+    "@hapi/lab": "23",
+    "coveralls": "^3.1.1",
+    "prettier": "^2.6.2",
+    "seneca": "^3.27.1",
+    "seneca-entity": "^16.4.0",
+    "seneca-promisify": "^2.3.0"
   }
 }

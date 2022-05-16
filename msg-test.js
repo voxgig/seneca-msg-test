@@ -91,6 +91,7 @@ function msg_test(seneca, spec) {
     var datajson = JSON.stringify(spec.data)
 
     await seneca.post('role:mem-store,cmd:import', {
+      merge: true,
       json: datajson,
       default$: {},
     })
