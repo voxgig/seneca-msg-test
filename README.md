@@ -17,7 +17,7 @@ against expectations.
 
 ## Example
 
-See [example](msg-test/example) folder
+See [example](example) folder
 
 ## Note
 
