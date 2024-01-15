@@ -1,6 +1,6 @@
 {
   "name": "seneca-msg-test",
-  "version": "3.4.0",
+  "version": "4.0.0",
   "description": "Structured testing of seneca plugin messages.",
   "main": "dist/msg-test.js",
   "type": "commonjs",
@@ -32,6 +32,14 @@
     "url": "https://github.com/voxgig/seneca-msg-test/issues"
   },
   "homepage": "https://github.com/voxgig/seneca-msg-test#readme",
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {
     "inks": "^2.0.0",
     "jsonic": "^1.0.1",
