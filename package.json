@@ -2,13 +2,16 @@
   "name": "seneca-msg-test",
   "version": "3.4.0",
   "description": "Structured testing of seneca plugin messages.",
-  "main": "msg-test.js",
+  "main": "dist/msg-test.js",
+  "type": "commonjs",
+  "types": "dist/msg-test.d.ts",
   "scripts": {
-    "build": "echo no-build",
+    "watch": "tsc -w -d",
+    "build": "tsc -d",
     "test": "lab -v -P test -L -t 80 -I AggregateError,atob,btoa,AbortController,AbortSignal,EventTarget,Event,MessageChannel,MessagePort,MessageEvent,performance -r console -o stdout -r html -o test/coverage.html -r lcov -o test/lcov.info",
     "test-some": "lab -v -P test -g",
     "prettier": "prettier --write --no-semi --single-quote *.js test/*.js",
-    "clean": "rm -rf node_modules yarn.lock package-lock.json",
+    "clean": "rm -rf node_modules yarn.lock package-lock.json dist",
     "reset": "npm run clean && npm i && npm test",
     "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
@@ -35,12 +38,15 @@
     "optioner": "^5.0.1"
   },
   "devDependencies": {
+    "typescript": "^5.3.3",
     "@hapi/code": "8",
     "@hapi/lab": "23",
     "coveralls": "^3.1.1",
-    "prettier": "^2.6.2",
-    "seneca": "^3.27.1",
-    "seneca-entity": "^16.4.0",
-    "seneca-promisify": "^2.3.0"
+    "prettier": "^2.6.2"
+  },
+  "peerDependencies": {
+    "seneca": ">=3",
+    "seneca-entity": ">=25",
+    "seneca-promisify": ">=2"
   }
 }

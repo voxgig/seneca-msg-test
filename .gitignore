@@ -63,3 +63,7 @@ typings/
 
 test/coverage.html
 test/lcov.info
+
+
+*~
+

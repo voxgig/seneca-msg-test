@@ -1,16 +1,20 @@
-/* Copyright (c) 2018-2021 Voxgig and other contributors, MIT License */
+/* Copyright (c) 2018-2024 Voxgig and other contributors, MIT License */
 'use strict'
 
 // TODO: add line numbers to all fail msgs!
 
-const Util = require('util')
-const Assert = require('assert')
+import Util from 'node:util'
+import Assert from 'node:assert'
 
-const Seneca = require('seneca')
+import Seneca from 'seneca'
+
+
 const Jsonic = require('jsonic')
 const Inks = require('inks')
 const Optioner = require('optioner')
 const Joi = Optioner.Joi
+
+
 
 module.exports = msg_test
 module.exports.Joi = Joi
@@ -51,7 +55,8 @@ const optioner = Optioner({
   ),
 })
 
-function msg_test(seneca, spec) {
+
+function msg_test(seneca: any, spec: any) {
   // Seneca instance is optional
   if (seneca && !seneca.seneca) {
     spec = seneca
@@ -109,11 +114,11 @@ function msg_test(seneca, spec) {
 }
 
 const intern = (module.exports.intern = {
-  run: async function (seneca, spec, calls) {
+  run: async function(seneca: any, spec: any, calls: any) {
     let callmap = spec.context
 
-    return new Promise((resolve, reject) => {
-      next_call(0, function (err) {
+    return new Promise((resolve: any, reject: any) => {
+      next_call(0, function(err: any) {
         if (err) {
           return reject(err)
         } else {
@@ -122,7 +127,7 @@ const intern = (module.exports.intern = {
       })
     })
 
-    function next_call(call_index, done) {
+    function next_call(call_index: any, done: any): any {
       try {
         if (calls.length <= call_index) {
           return done()
@@ -165,7 +170,7 @@ const intern = (module.exports.intern = {
 
         var instance = intern.handle_delegate(seneca, call, callmap, spec)
 
-        instance.act(msg, function (err, out, meta) {
+        instance.act(msg, function(err: any, out: any, meta: any) {
           // initial call meta data - allows self-refs in validation
           if (call.name) {
             callmap[call.name] = {
@@ -223,7 +228,7 @@ const intern = (module.exports.intern = {
               )
             } else {
               var current_call_out = Inks(call.out, callmap, {
-                exclude: (k, v) => Joi.isSchema(v, { legacy: true }),
+                exclude: (k: any, v: any) => Joi.isSchema(v, { legacy: true }),
               })
 
               result = Optioner(current_call_out, {
@@ -233,10 +238,10 @@ const intern = (module.exports.intern = {
                 return done(
                   new Error(
                     'Output for: ' +
-                      errname +
-                      (call.line ? ' (' + call.line + ')' : '') +
-                      ' was invalid: ' +
-                      result.error.message
+                    errname +
+                    (call.line ? ' (' + call.line + ')' : '') +
+                    ' was invalid: ' +
+                    result.error.message
                   )
                 )
               }
@@ -252,9 +257,9 @@ const intern = (module.exports.intern = {
               return done(
                 new Error(
                   'Verify of: ' +
-                    errname +
-                    ' failed: ' +
-                    (result.message || result)
+                  errname +
+                  ' failed: ' +
+                  (result.message || result)
                 )
               )
             }
@@ -281,7 +286,7 @@ const intern = (module.exports.intern = {
   },
 
   // TODO: support a default delegate
-  handle_delegate: function (instance, call, callmap, spec) {
+  handle_delegate: function(instance: any, call: any, callmap: any, spec: any) {
     if (call.delegate) {
       if ('string' === typeof call.delegate) {
         instance = spec.delegates[call.delegate]
@@ -289,9 +294,9 @@ const intern = (module.exports.intern = {
         if (null == instance) {
           throw new Error(
             'Delegate not defined: ' +
-              call.delegate +
-              '. Message was: ' +
-              call.msgstr
+            call.delegate +
+            '. Message was: ' +
+            call.msgstr
           )
         }
       } else if (Array.isArray(call.delegate)) {
@@ -301,9 +306,9 @@ const intern = (module.exports.intern = {
       } else {
         throw new Error(
           'Unknown delegate reference: ' +
-            Util.inspect(call.delegate) +
-            '. Message was: ' +
-            call.msgstr
+          Util.inspect(call.delegate) +
+          '. Message was: ' +
+          call.msgstr
         )
       }
     }
@@ -311,23 +316,23 @@ const intern = (module.exports.intern = {
     return instance
   },
 
-  missing_messages: function (seneca, spec, calls) {
+  missing_messages: function(seneca: any, spec: any, calls: any) {
     var foundmsgs = seneca
       .list(spec.pattern)
-      .map((msg) => seneca.util.pattern(msg))
+      .map((msg: any) => seneca.util.pattern(msg))
 
-    const specmsgs = []
+    const specmsgs: any = []
 
-    calls.forEach((call) => {
+    calls.forEach((call: any) => {
       var specmsg_obj = Jsonic(spec.pattern + ',' + call.pattern)
       specmsgs.push(specmsg_obj)
     })
 
     // remove msgs once found
-    specmsgs.forEach((msg) => {
+    specmsgs.forEach((msg: any) => {
       var found = seneca.find(msg)
       if (found) {
-        foundmsgs = foundmsgs.filter((msg) => msg != found.pattern)
+        foundmsgs = foundmsgs.filter((msg: any) => msg != found.pattern)
       }
     })
 
@@ -340,12 +345,13 @@ const intern = (module.exports.intern = {
 
 // Get line number of test message in spec file.
 // Use as an extra value in msg: `+LN()`
-function LN(t) {
-  var line = new Error().stack
-    .split('\n')[2]
-    .match(/[\/\\]([^./\\]+)[^/\\]*\.js:(\d+):/)
-    .filter((x, i) => i == 1 || i == 2)
-    .join('~')
+function LN(t: any) {
+  var line: any =
+    (new Error().stack as any)
+      .split('\n')[2]
+      .match(/[\/\\]([^./\\]+)[^/\\]*\.js:(\d+):/)
+      .filter((_x: any, i: any) => i == 1 || i == 2)
+      .join('~')
 
   if (null == t) {
     return ',LN:' + line
