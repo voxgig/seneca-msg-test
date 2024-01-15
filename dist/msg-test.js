@@ -12,9 +12,6 @@ const Jsonic = require('jsonic');
 const Inks = require('inks');
 const Optioner = require('optioner');
 const Joi = Optioner.Joi;
-module.exports = msg_test;
-module.exports.Joi = Joi;
-module.exports.LN = LN;
 const optioner = Optioner({
     init: Joi.function(),
     test: Joi.boolean().default(true),
@@ -276,5 +273,12 @@ function LN(t) {
         t.line = line;
         return t;
     }
+}
+msg_test.MsgTest = msg_test;
+msg_test.Joi = Joi;
+msg_test.LN = LN;
+exports.default = msg_test;
+if ('undefined' !== typeof module) {
+    module.exports = msg_test;
 }
 //# sourceMappingURL=msg-test.js.map

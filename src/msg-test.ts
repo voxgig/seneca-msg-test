@@ -16,9 +16,6 @@ const Joi = Optioner.Joi
 
 
 
-module.exports = msg_test
-module.exports.Joi = Joi
-module.exports.LN = LN
 
 const optioner = Optioner({
   init: Joi.function(),
@@ -359,4 +356,17 @@ function LN(t: any) {
     t.line = line
     return t
   }
+}
+
+
+msg_test.MsgTest = msg_test
+msg_test.Joi = Joi
+msg_test.LN = LN
+
+
+export default msg_test
+
+
+if ('undefined' !== typeof module) {
+  module.exports = msg_test
 }
