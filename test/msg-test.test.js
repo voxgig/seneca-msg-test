@@ -155,6 +155,43 @@ lab.test(
   )
 )
 
+lab.test("matching :out with the subject's actual output", async () => {
+  const seneca = seneca_instance({ log: 'silent' }, seneca => {
+    return seneca.use(function somePlugin() {
+      this.add('role:some-plugin,cmd:test', (_msg, reply) => {
+        return reply(null, { ok: true, data: { foo: 'bar' } })
+      })
+    })
+  })
+
+  const runMsgTest = SenecaMsgTest(seneca, {
+    test: true,
+    pattern: 'role:some-plugin',
+    calls: [
+      {
+        pattern: 'cmd:test',
+        out: {
+          ok: true,
+          data: {}
+        }
+      }
+    ]
+  })
+
+  try {
+    await runMsgTest()
+  } catch (err) {
+    expect(err.message).equal(
+      'Output for: {role:some-plugin,cmd:test}' +
+        ' was invalid: "data.foo" is not allowed'
+    )
+
+    return
+  }
+
+  throw new Error('Expected an error to be thrown.')
+})
+
 lab.test(
   'data-sequence',
   SenecaMsgTest(
